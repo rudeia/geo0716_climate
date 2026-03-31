@@ -3,7 +3,7 @@
  * 출처: PPT 기출지점 정리 자료 
  */
 
-const tropicalData = {
+const climateData = {
     // --- [열대 우림 기후 (Af)] ---
     "싱가포르": {
         coords: [1.35, 103.81], symbol: "Af", exam_freq: "⭐",
@@ -84,6 +84,7 @@ const tropicalData = {
         precip: [100, 100, 140, 160, 80, 30, 10, 20, 30, 60, 110, 110],
         desc: "야생동물의 이동으로 유명한 동아프리카의 사바나 지점입니다. [cite: 40]"
     },
+    
 // --- [사막 기후 (BW)] ---
     "카이로": {
         coords: [30.04, 31.23], symbol: "BW", exam_freq: "⭐",
@@ -501,3 +502,4 @@ const tropicalData = {
         precip: [15, 17, 20, 50, 95, 105, 90, 80, 45, 35, 25, 15],
         desc: "아프리카 남단의 남반구 지중해성 기후 지점으로 기출 빈도가 매우 높습니다. [cite: 33-36]"
     }
+};
