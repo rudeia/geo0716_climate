@@ -3,132 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koppen Climate Lab</title>
+    <title>Climate Data Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f1f5f9; }
-        #map { height: 480px; width: 100%; border-radius: 1.5rem; z-index: 1; }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1.5rem;
-        }
-        /* 페이드인 애니메이션 */
-        .fade-up { animation: fadeUp 0.6s ease-out forwards; }
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; }
+        #map { height: 100%; width: 100%; z-index: 1; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .city-card:hover { background: rgba(59, 130, 246, 0.1); border-color: #3b82f6; }
+        .active-card { background: rgba(59, 130, 246, 0.2) !important; border-color: #3b82f6 !important; }
     </style>
 </head>
-<body class="p-4 md:p-10 min-h-screen">
-    <div class="max-w-6xl mx-auto">
-        <header class="mb-8 flex justify-between items-end">
-            <div>
-                <h1 class="text-4xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent italic">
-                    SHIN-GEO CLIMATE LAB
-                </h1>
-                <p class="text-slate-400 mt-2 font-medium">데이터로 탐구하는 세계 기후 시각화</p>
+<body class="text-slate-200 overflow-hidden">
+    <div class="flex flex-col md:flex-row h-screen">
+        
+        <div class="w-full md:w-[400px] bg-slate-900 border-r border-slate-800 flex flex-col h-full z-10 shadow-2xl">
+            <div class="p-6 border-b border-slate-800">
+                <h1 class="text-2xl font-black text-blue-400 italic tracking-tighter">CLIMATE LAB</h1>
+                <p class="text-slate-500 text-xs mt-1">Select a city to explore data</p>
             </div>
-            <div class="text-slate-500 text-sm font-mono hidden md:block">v2.0 Stable Build</div>
-        </header>
 
-        <div class="glass-panel p-2 shadow-2xl mb-8 border-blue-500/20 border-2">
+            <div id="city-list" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                </div>
+
+            <div id="detail-panel" class="p-6 bg-slate-950 border-t border-slate-800 hidden fade-up">
+                <h2 id="selected-city" class="text-2xl font-bold text-white mb-2">도시명</h2>
+                <p id="selected-desc" class="text-slate-400 text-xs mb-4 leading-relaxed"></p>
+                <div class="h-[180px]">
+                    <canvas id="climateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 relative">
             <div id="map"></div>
-        </div>
-
-        <div id="info-panel" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 fade-up">
-                
-                <div class="glass-panel p-8 flex flex-col justify-center border-l-4 border-l-blue-500">
-                    <span class="text-blue-500 font-bold tracking-tighter text-sm uppercase mb-1">Selected Location</span>
-                    <h2 id="city-name" class="text-5xl font-black text-white mb-6">도시 이름</h2>
-                    <div class="bg-slate-800/50 p-4 rounded-xl">
-                        <h3 class="text-blue-300 font-bold mb-2">기후 특징 분석</h3>
-                        <p id="climate-desc" class="text-slate-300 leading-relaxed text-sm"></p>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2 glass-panel p-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold flex items-center gap-2">
-                            <span class="w-2 h-6 bg-blue-500 rounded-full"></span> 
-                            Monthly Climate Graph
-                        </h3>
-                        <div class="flex gap-4 text-xs font-bold uppercase tracking-widest">
-                            <span class="text-rose-400">● Temp</span>
-                            <span class="text-blue-400">● Precip</span>
-                        </div>
-                    </div>
-                    <div class="h-[320px]">
-                        <canvas id="climateChart"></canvas>
-                    </div>
-                </div>
-
+            <div class="absolute top-4 right-4 z-[500] bg-slate-900/80 backdrop-blur-md p-3 rounded-lg border border-slate-700 text-xs font-bold shadow-xl">
+                🌍 Global Climate Visualization
             </div>
         </div>
+
     </div>
 
     <script>
-        // 1. 지도 초기화 (Dark 모드 타일 적용)
-        const map = L.map('map', { zoomControl: false }).setView([20, 20], 2);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
-
+        // 1. 데이터 설정
         const climateData = {
-            "Seoul": { coords: [37.56, 126.97], temp: [-2.4,-0.4,5.7,12.5,17.8,22.2,24.9,25.7,21.2,14.8,7.2,0.4], precip: [20.8,25,47.3,64.5,102.2,133.2,394.7,364.2,169.3,51.8,52.5,21.5], desc: "냉대 동계 건조 기후(Dwa). 사계절이 뚜렷하며 여름철 몬순 영향으로 강수가 매우 집중됩니다." },
-            "London": { coords: [51.5, -0.12], temp: [5.2,5.3,7.6,9.9,13.3,16.5,18.7,18.5,15.7,12,8.4,5.9], precip: [55.2,40.9,41.6,43.7,46.3,44.6,44.6,49.5,49.1,68.5,59,55.2], desc: "서안 해양성 기후(Cfb). 편서풍의 영향으로 일 년 내내 비가 고르게 내리며 여름이 선선합니다." },
-            "Singapore": { coords: [1.35, 103.8], temp: [26.5,27.1,27.5,28,28.3,28.3,27.9,27.9,27.6,27.6,27,26.4], precip: [234,183,185,179,171,130,154,148,163,191,250,269], desc: "열대 우림 기후(Af). 연중 고온다습하며 계절 구분보다 매일 내리는 스콜이 특징입니다." }
+            "Seoul": { coords: [37.56, 126.97], temp: [-2.4, -0.4, 5.7, 12.5, 17.8, 22.2, 24.9, 25.7, 21.2, 14.8, 7.2, 0.4], precip: [20, 25, 47, 64, 102, 133, 394, 364, 169, 51, 52, 21], desc: "냉대 동계 건조 기후. 여름은 고온다습하고 겨울은 한랭건조합니다.", color: "#fb7185" },
+            "London": { coords: [51.5, -0.12], temp: [5.2, 5.3, 7.6, 9.9, 13.3, 16.5, 18.7, 18.5, 15.7, 12, 8.4, 5.9], precip: [55, 40, 42, 43, 46, 45, 45, 49, 49, 68, 59, 55], desc: "서안 해양성 기후. 연중 비가 고르게 내리며 여름이 선선합니다.", color: "#60a5fa" },
+            "Singapore": { coords: [1.35, 103.8], temp: [26.5, 27.1, 27.5, 28, 28.3, 28.3, 27.9, 27.9, 27.6, 27.6, 27, 26.4], precip: [234, 183, 185, 179, 171, 130, 154, 148, 163, 191, 250, 269], desc: "열대 우림 기후. 일 년 내내 덥고 비가 아주 많이 내립니다.", color: "#4ade80" }
         };
+
+        // 2. 지도 초기화 (CartoDB Dark 스타일)
+        const map = L.map('map', { zoomControl: false }).setView([20, 20], 2);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
         let myChart = null;
 
-        Object.keys(climateData).forEach(city => {
-            const data = climateData[city];
-            // 예쁜 원형 마커로 변경
+        // 3. 사이드바 카드 생성 및 마커 생성
+        const cityListContainer = document.getElementById('city-list');
+        
+        Object.keys(climateData).forEach(cityName => {
+            const data = climateData[cityName];
+
+            // 카드 UI 생성
+            const card = document.createElement('div');
+            card.className = "city-card p-4 rounded-xl border border-slate-800 bg-slate-800/30 cursor-pointer transition-all duration-200";
+            card.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-lg text-white">${cityName}</h3>
+                    <span class="w-2 h-2 rounded-full" style="background-color: ${data.color}"></span>
+                </div>
+                <p class="text-slate-500 text-xs mt-1 truncate">${data.desc}</p>
+            `;
+            cityListContainer.appendChild(card);
+
+            // 마커 생성
             const marker = L.circleMarker(data.coords, {
-                radius: 10, fillColor: "#3b82f6", color: "#fff", weight: 3, opacity: 1, fillOpacity: 0.8
+                radius: 8, fillColor: data.color, color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.8
             }).addTo(map);
 
-            marker.on('click', () => {
-                document.getElementById('info-panel').classList.remove('hidden');
-                document.getElementById('city-name').innerText = city;
-                document.getElementById('climate-desc').innerText = data.desc;
+            // 클릭 이벤트 통합 (카드 클릭 or 마커 클릭)
+            const selectCity = () => {
+                // 카드 활성화 표시
+                document.querySelectorAll('.city-card').forEach(c => c.classList.remove('active-card'));
+                card.classList.add('active-card');
 
+                // 지도 이동 (flyTo)
+                map.flyTo(data.coords, 5, { duration: 1.5 });
+
+                // 정보 패널 노출
+                document.getElementById('detail-panel').style.display = 'block';
+                document.getElementById('selected-city').innerText = cityName;
+                document.getElementById('selected-desc').innerText = data.desc;
+
+                // 그래프 생성
                 const ctx = document.getElementById('climateChart').getContext('2d');
                 if (myChart) myChart.destroy();
-
                 myChart = new Chart(ctx, {
-                    type: 'bar',
+                    type: 'line',
                     data: {
-                        labels: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
-                        datasets: [
-                            { label: '기온', data: data.temp, type: 'line', borderColor: '#fb7185', borderWidth: 4, tension: 0.4, yAxisID: 'y1', pointRadius: 0 },
-                            { label: '강수량', data: data.precip, backgroundColor: 'rgba(59, 130, 246, 0.4)', borderRadius: 6, yAxisID: 'y2' }
-                        ]
+                        labels: ['1','2','3','4','5','6','7','8','9','10','11','12'],
+                        datasets: [{
+                            label: 'Temp (°C)',
+                            data: data.temp,
+                            borderColor: data.color,
+                            backgroundColor: data.color + '22',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3,
+                            pointRadius: 0
+                        }]
                     },
                     options: {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            y1: { position: 'left', ticks: { color: '#fb7185', font: { weight: 'bold' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                            y2: { position: 'right', ticks: { color: '#60a5fa' }, grid: { display: false } },
-                            x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                            y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b', font: { size: 10 } } },
+                            x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
                         }
                     }
                 });
-                
-                // 정보창으로 부드럽게 스크롤
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            });
+            };
+
+            card.onclick = selectCity;
+            marker.on('click', selectCity);
         });
     </script>
 </body>
