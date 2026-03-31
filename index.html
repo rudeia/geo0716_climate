@@ -130,3 +130,23 @@
                         datasets: [
                             { label: '기온', data: data.temp, type: 'line', borderColor: '#fb7185', yAxisID: 'y1', tension: 0.4, pointRadius: 2 },
                             { label: '강수량', data: data.precip, backgroundColor: climateColor + '66', yAxisID: 'y2' }
+                        ]
+                    },
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            y1: { min: -40, max: 40, ticks: { color: '#fb7185', font: { size: 10 } } },
+                            y2: { min: 0, max: 500, position: 'right', grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                            x: { ticks: { font: { size: 10 } } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            };
+
+            card.onclick = selectAction;
+            marker.on('click', selectAction);
+        });
+    </script>
+</body>
+</html>
