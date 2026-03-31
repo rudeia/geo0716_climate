@@ -20,9 +20,7 @@
             <p class="text-gray-400 mt-2">지도의 마커를 클릭하여 도시별 기후를 확인하세요.</p>
         </header>
 
-
         <div id="map" class="mb-6 shadow-2xl border border-gray-700"></div>
-
 
         <div id="info-panel" class="bg-gray-800 p-6 rounded-xl border border-gray-700 hidden">
             <h2 id="city-name" class="text-2xl font-bold mb-4 text-yellow-400">도시 이름</h2>
@@ -37,7 +35,6 @@
             </div>
         </div>
     </div>
-
 
     <script>
         // 1. 기후 데이터 (여기에 도시를 추가할 수 있어!)
@@ -62,14 +59,11 @@
             }
         };
 
-
         // 2. 지도 초기화
         const map = L.map('map').setView([20, 10], 2);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-
         let myChart;
-
 
         // 3. 마커 생성 및 클릭 이벤트
         Object.keys(climateData).forEach(city => {
@@ -81,18 +75,15 @@
             });
         });
 
-
         // 4. 그래프 그리기 함수
         function showClimate(name, data) {
             document.getElementById('info-panel').classList.remove('hidden');
             document.getElementById('city-name').innerText = name;
             document.getElementById('climate-desc').innerText = data.desc;
 
-
             const ctx = document.getElementById('climateChart').getContext('2d');
             
             if (myChart) myChart.destroy(); // 기존 그래프 삭제
-
 
             myChart = new Chart(ctx, {
                 type: 'bar',
@@ -116,4 +107,12 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        'y-temp': { type
+                        'y-temp': { type: 'linear', position: 'left', title: { display: true, text: '기온 (°C)', color: '#ff6384' } },
+                        'y-precip': { type: 'linear', position: 'right', title: { display: true, text: '강수량 (mm)', color: '#36a2eb' } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
