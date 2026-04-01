@@ -23,7 +23,8 @@
             .sidebar { width: 100%; height: 45%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
             #map { height: 55% !important; order: 1; }
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; max-height: none !important; z-index: 50; }
-            .climate-engine { top: auto; bottom: 1rem; right: 50%; transform: translateX(50%); width: 90%; max-width: 350px; }
+            /* 모바일에서 기후 엔진 슬라이더 크기 조절 */
+            .climate-engine { top: auto; bottom: 1rem; right: 50%; transform: translateX(50%); width: 90%; max-width: 350px; padding: 0.75rem !important; }
         }
         
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -36,7 +37,7 @@
         <div class="sidebar shadow-2xl">
             <div class="p-4 border-b border-slate-800 bg-slate-900/50">
                 <h1 class="text-base font-black text-white italic tracking-tighter uppercase">Geo-Koppen Lab Pro</h1>
-                <p class="text-slate-500 text-[9px] mt-0.5 font-bold">22~26학년도 기출 73곳 & 기후 시뮬레이터</p>
+                <p class="text-slate-500 text-[9px] mt-0.5 font-bold">22~26학년도 기출 73곳 & 대기대순환 시뮬레이터</p>
             </div>
 
             <div class="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
@@ -68,13 +69,13 @@
         </div>
         
         <div id="map" class="relative">
-            <div class="climate-engine absolute top-4 right-4 z-[1000] bg-slate-900/80 p-3 rounded-xl border border-slate-700 shadow-2xl backdrop-blur-sm w-64">
-                <div class="flex justify-between items-center mb-1.5">
-                    <span class="text-slate-300 font-black italic text-[10px]">☁️ CLIMATE ENGINE</span>
-                    <span id="month-display" class="text-blue-400 font-bold text-sm">1월</span>
+            <div class="climate-engine absolute top-4 right-4 z-[1000] bg-slate-900/80 p-4 rounded-xl border border-slate-700 shadow-2xl backdrop-blur-sm w-72">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-slate-300 font-black italic text-[11px]">🌍 CLIMATE ENGINE</span>
+                    <span id="month-display" class="text-blue-400 font-bold text-base">1월</span>
                 </div>
                 <input type="range" id="month-slider" min="1" max="12" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                <div class="flex justify-between text-[8px] text-slate-500 mt-1.5 font-bold">
+                <div class="flex justify-between text-[9px] text-slate-400 mt-2 font-bold">
                     <span>JAN</span><span>APR</span><span>JUL</span><span>OCT</span><span>DEC</span>
                 </div>
             </div>
@@ -124,6 +125,7 @@
             "바르셀로나": { coords: [41.38, 2.17], symbol: "Cs", exam_freq: "⭐", history: "251119", temp: [10,10,13,15,18,22,25,25,23,19,14,11], precip: [40,35,35,50,50,30,20,45,75,90,55,45], image: "https://picsum.photos/seed/barcelona/500/250", desc: "지중해성(Cs). 스페인 동부 연안으로 수목 농업과 관광업이 발달했습니다." },
             "케이프타운": { coords: [-33.92, 18.42], symbol: "Cs", exam_freq: "⭐⭐⭐⭐⭐", history: "221105, 230902, 231119, 250610, 250905", temp: [20,20,19,16,14,12,11,12,13,15,17,19], precip: [15,17,20,50,95,105,90,80,45,35,25,15], image: "https://picsum.photos/seed/capetown/500/250", desc: "지중해성(Cs). 아프리카 남단의 남반구 지점. 7~8월에 편서풍대 속으로 들어가 강수가 집중됩니다." },
             "시칠리아": { coords: [38.11, 13.36], symbol: "Cs", exam_freq: "⭐", history: "기출 참고", temp: [12,12,14,16,19,23,26,27,24,21,17,13], precip: [70,65,60,45,25,12,5,15,40,80,95,80], image: "https://picsum.photos/seed/sicily/500/250", desc: "지중해성(Cs). 이탈리아 남부로 지중해 농업의 핵심 지역입니다." },
+
             "런던": { coords: [51.50, -0.12], symbol: "Cfb", exam_freq: "⭐", history: "기출 참고", temp: [5.2,5.3,7.6,9.9,13.3,16.5,18.7,18.5,15.7,12.0,8.4,5.9], precip: [55,41,42,44,46,45,45,50,49,69,59,55], image: "https://picsum.photos/seed/london/500/250", desc: "서안 해양성(Cfb). 난류와 편서풍의 영향으로 겨울이 따뜻하고 연중 강수가 고릅니다." },
             "파리": { coords: [48.85, 2.35], symbol: "Cfb", exam_freq: "⭐", history: "260603", temp: [5.0,5.6,8.8,11.5,15.3,18.3,20.5,20.4,16.9,13.0,8.3,5.5], precip: [51,41,49,53,65,54,59,52,54,60,52,59], image: "https://picsum.photos/seed/paris/500/250", desc: "서안 해양성(Cfb). 대륙 서안에 위치하여 혼합 농업이 발달했습니다." },
             "오클랜드": { coords: [-36.84, 174.76], symbol: "Cfb", exam_freq: "⭐⭐⭐", history: "220618, 221116, 230905", temp: [20.0,20.2,18.8,16.1,14.0,11.8,10.9,11.8,13.1,14.6,16.4,18.2], precip: [71,71,80,94,105,122,128,112,92,90,84,88], image: "https://picsum.photos/seed/auckland/500/250", desc: "서안 해양성(Cfb). 뉴질랜드 북섬에 위치하여 연중 푸른 목초지가 조성됩니다." },
@@ -164,7 +166,7 @@
             "티벳고원": { coords: [32.0, 90.0], symbol: "H", exam_freq: "⭐⭐", history: "260914", temp: [-10,-7,-2,3,8,12,14,13,9,3,-5,-9], precip: [2,3,5,10,25,60,100,90,50,15,3,2], image: "https://picsum.photos/seed/tibet/500/250", desc: "고산 툰드라(H). 세계의 지붕으로 불리며, 위도가 낮음에도 한랭한 기후를 보입니다." }
         };
 
-        // 색상 및 맵 초기화
+        // 색상 로직
         function getCol(s) {
             const sym = s.toUpperCase();
             if (sym === 'AF') return '#ff0044'; if (sym === 'AM') return '#ff4477';
@@ -177,6 +179,7 @@
             return '#aa00ff'; 
         }
 
+        // 지도 초기화
         const map = L.map('map', { zoomControl: false, tap: true }).setView([20, 20], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -184,7 +187,7 @@
         let myChart = null;
         let currentMarkers = []; 
 
-        // === [1] 리스트 UI 렌더링 로직 ===
+        // === [1] 리스트 UI 렌더링 ===
         function renderList(sortBy = 'default') {
             const listContainer = document.getElementById('city-list');
             listContainer.innerHTML = '';
@@ -213,7 +216,7 @@
             });
         }
 
-        // === [2] 상세 정보 표시 로직 ===
+        // === [2] 상세 정보 패널 제어 ===
         function selectCity(name, d, cardElement) {
             document.querySelectorAll('#city-list > div').forEach(c => c.classList.remove('bg-slate-700', 'border-slate-500'));
             cardElement.classList.add('bg-slate-700', 'border-slate-500');
@@ -231,12 +234,10 @@
             b.innerText = d.symbol; b.style.backgroundColor = col;
             b.style.color = (sym => ['ET','EF','BW','BS','CS'].includes(sym.toUpperCase()) ? '#000' : '#fff')(d.symbol);
 
-            // 이미지 표시
             const imgEl = document.getElementById('city-image');
             if (d.image) { imgEl.src = d.image; imgEl.classList.remove('hidden'); } 
             else { imgEl.classList.add('hidden'); }
 
-            // 차트 렌더링
             const ctx = document.getElementById('climateChart').getContext('2d');
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
@@ -257,67 +258,58 @@
             document.querySelectorAll('#city-list > div').forEach(c => c.classList.remove('bg-slate-700', 'border-slate-500'));
         });
 
-        // === [3] 기후 엔진 (ITCZ 및 바람 시뮬레이터) ===
+        // === [3] 기후 엔진 (대기대순환 및 계절풍 시뮬레이터) ===
         let climateLayerGrp = L.layerGroup().addTo(map);
-
-        // 기본 바람 경로 (무역풍, 편서풍 등)
-        const winds = [
-            { path: [[35, -30], [15, -60]], type: 'trade_ne' }, { path: [[-35, -10], [-15, -40]], type: 'trade_se' }, // 대서양
-            { path: [[35, 180], [15, 140]], type: 'trade_ne' }, { path: [[-35, 100], [-15, 60]], type: 'trade_se' }, // 태평양/인도양
-            { path: [[40, -120], [50, -80]], type: 'westerly' }, { path: [[-40, 20], [-50, 60]], type: 'westerly' }, // 편서풍
-            { path: [[-5, 60], [20, 80]], type: 'monsoon_summer' }, // 인도양 여름 계절풍 (남서)
-            { path: [[25, 110], [0, 100]], type: 'monsoon_winter' } // 동아시아 겨울 계절풍 (북동)
-        ];
+        const longitudes = [-140, -40, 60, 140]; // 경도별 바람 기준선
 
         function updateClimateEngine(month) {
             climateLayerGrp.clearLayers();
             document.getElementById('month-display').innerText = month + '월';
 
-            // 1. ITCZ 위도 계산 (수학적 보간 - 1월 남쪽, 7월 북쪽)
-            // month=1 일때 shift=-1(남쪽), month=7 일때 shift=1(북쪽)
-            const shift = -Math.cos((month - 1) * Math.PI / 6); 
-            
-            // ITCZ 경도별 기준점 [경도, 기준위도, 변동폭]
-            const itczPoints = [
-                [-180, 5, 3], [-120, 5, 5], [-60, 0, 15], /* 남미 */ [-20, 5, 5], 
-                [20, 5, 15], /* 아프리카 */ [60, 5, 10], [90, 5, 20], /* 인도 */ [130, 0, 15], [180, 5, 3]
+            const shift = -Math.cos((month - 1) * Math.PI / 6) * 10; 
+
+            // 1. 아열대 고압대 (노란색 밴드)
+            L.polyline([[30 + shift, -180], [30 + shift, 180]], { color: '#eab308', weight: 25, opacity: 0.2 }).addTo(climateLayerGrp).bindTooltip("북반구 아열대 고압대", {sticky: true});
+            L.polyline([[-30 + shift, -180], [-30 + shift, 180]], { color: '#eab308', weight: 25, opacity: 0.2 }).addTo(climateLayerGrp).bindTooltip("남반구 아열대 고압대", {sticky: true});
+
+            // 2. 적도 수렴대 (ITCZ)
+            const realisticItcz = [
+                [shift, -180], [shift+2, -100], [shift-5, -60], 
+                [shift+5, 20], [shift+15, 80], [shift+5, 140], [shift, 180]
             ];
-
-            const currentItczCoords = itczPoints.map(p => [p[1] + (p[2] * shift), p[0]]);
-
-            // ITCZ 라인 그리기
-            L.polyline(currentItczCoords, {
+            L.polyline(realisticItcz, {
                 color: month >= 5 && month <= 9 ? '#ef4444' : '#3b82f6', 
-                weight: 5, opacity: 0.6, dashArray: '10, 15', lineCap: 'round'
-            }).addTo(climateLayerGrp).bindTooltip(`ITCZ (${month}월)`, {sticky: true, direction: 'top'});
+                weight: 6, opacity: 0.7, dashArray: '10, 15', lineCap: 'round'
+            }).addTo(climateLayerGrp).bindTooltip(`적도 수렴대(ITCZ) (${month}월)`, {sticky: true});
 
-            // 2. 바람 흐름 (AntPath 애니메이션)
+            // 3. 바람 (대기대순환 + 계절풍)
+            let winds = [];
+            longitudes.forEach(lon => {
+                winds.push({ path: [[25 + shift, lon], [5 + shift, lon - 30]], color: '#86efac', pulse: '#16a34a', desc: '북동무역풍' });
+                winds.push({ path: [[-25 + shift, lon], [-5 + shift, lon - 30]], color: '#86efac', pulse: '#16a34a', desc: '남동무역풍' });
+                winds.push({ path: [[35 + shift, lon - 20], [55 + shift, lon + 20]], color: '#bfdbfe', pulse: '#2563eb', desc: '편서풍' });
+                winds.push({ path: [[-35 + shift, lon - 20], [-55 + shift, lon + 20]], color: '#bfdbfe', pulse: '#2563eb', desc: '편서풍' });
+                winds.push({ path: [[80 + shift, lon], [65 + shift, lon - 30]], color: '#e2e8f0', pulse: '#64748b', desc: '극동풍' });
+                winds.push({ path: [[-80 + shift, lon], [-65 + shift, lon - 30]], color: '#e2e8f0', pulse: '#64748b', desc: '극동풍' });
+            });
+
+            if (month >= 6 && month <= 8) { // 여름철 몬순
+                winds.push({ path: [[-5, 60], [25, 80]], color: '#fca5a5', pulse: '#dc2626', desc: '여름철 남서계절풍', weight: 4 });
+                winds.push({ path: [[10, 110], [35, 125]], color: '#fca5a5', pulse: '#dc2626', desc: '여름철 남동계절풍', weight: 4 });
+            } else if (month >= 11 || month <= 2) { // 겨울철 몬순
+                winds.push({ path: [[25, 80], [0, 60]], color: '#93c5fd', pulse: '#1d4ed8', desc: '겨울철 북동계절풍', weight: 4 });
+                winds.push({ path: [[45, 120], [20, 130]], color: '#93c5fd', pulse: '#1d4ed8', desc: '겨울철 북서계절풍', weight: 4 });
+            }
+
             winds.forEach(w => {
-                let active = false;
-                let color = "#ffffff";
-                let pulseColor = "#64748b";
-
-                if (w.type.includes('trade') || w.type.includes('westerly')) {
-                    active = true; // 무역풍/편서풍은 연중 붊
-                } else if (w.type === 'monsoon_summer' && month >= 5 && month <= 9) {
-                    active = true; color = "#fca5a5"; pulseColor = "#ef4444"; // 여름 (빨강 톤)
-                } else if (w.type === 'monsoon_winter' && (month >= 11 || month <= 3)) {
-                    active = true; color = "#93c5fd"; pulseColor = "#3b82f6"; // 겨울 (파랑 톤)
-                }
-
-                if (active) {
-                    L.polyline.antPath(w.path, {
-                        delay: 2000, dashArray: [10, 20], weight: 3, 
-                        color: color, pulseColor: pulseColor, paused: false, reverse: false
-                    }).addTo(climateLayerGrp);
-                }
+                L.polyline.antPath(w.path, { delay: 2000, dashArray: [10, 20], weight: w.weight || 3, color: w.color, pulseColor: w.pulse, paused: false, reverse: false }).addTo(climateLayerGrp).bindTooltip(w.desc);
             });
         }
 
+        // === [4] 이벤트 리스너 및 초기화 ===
         document.getElementById('month-slider').addEventListener('input', (e) => updateClimateEngine(e.target.value));
-        
-        // 🚀 초기 실행
         document.getElementById('sort-select').addEventListener('change', (e) => renderList(e.target.value));
+        
         renderList();
         updateClimateEngine(1);
 
