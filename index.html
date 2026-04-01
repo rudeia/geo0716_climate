@@ -30,6 +30,75 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
+
+        /* 대기대순환 보조 패널 스타일 */
+        .circulation-panel {
+            width: 150px;
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: absolute;
+            transition: top 0.3s ease;
+        }
+
+        .circulation-panel.hidden {
+            display: none;
+        }
+
+        .circulation-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .circulation-item-name {
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 0.25rem;
+        }
+
+        .circulation-item-desc {
+            font-size: 9px;
+        }
+
+        .wind-label {
+            position: absolute;
+            color: #fff;
+            background-color: rgba(15, 23, 42, 0.8);
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .region-marker {
+            position: absolute;
+            color: #fff;
+            background-color: rgba(234, 179, 8, 0.8);
+            padding: 2px 4px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translate(-50%, -50%);
+        }
+
+        .wind-arrow.ant-path {
+            opacity: 0.8;
+        }
+
     </style>
 </head>
 <body class="overflow-hidden">
@@ -71,7 +140,7 @@
         <div id="map" class="relative">
             <div class="climate-engine absolute top-4 right-4 z-[1000] bg-slate-900/80 p-4 rounded-xl border border-slate-700 shadow-2xl backdrop-blur-sm w-72">
                 <div class="flex justify-between items-center mb-2">
-                    <span class="text-slate-300 font-black italic text-[11px]">🌍 CLIMATE ENGINE</span>
+                    <span class="text-slate-300 font-black italic text-[11px]">🌍 MONTH LEVER</span>
                     <span id="month-display" class="text-blue-400 font-bold text-base">1월</span>
                 </div>
                 <input type="range" id="month-slider" min="1" max="12" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
@@ -79,6 +148,73 @@
                     <span>JAN</span><span>APR</span><span>JUL</span><span>OCT</span><span>DEC</span>
                 </div>
             </div>
+
+            <div class="absolute bottom-4 left-4 z-[1000] bg-slate-900/80 p-2 rounded-lg border border-slate-700 shadow-md flex items-center gap-2">
+                <span class="text-[10px] text-slate-400 font-bold">대기대순환 보조 ON/OFF</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="circulation-toggle" class="sr-only peer" checked>
+                    <div class="w-9 h-5 bg-slate-700 rounded-full peer peer-focus:ring-1 peer-focus:ring-blue-500 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+
+            <div id="left-circulation-panel" class="circulation-panel circulation-panel-y absolute hidden">
+                <div class="circulation-item">
+                    <span class="circulation-item-name">극고압대</span>
+                    <span class="circulation-item-desc">찬 공기·하강</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">한대 전선대</span>
+                    <span class="circulation-item-desc">상승</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">아열대 고압대</span>
+                    <span class="circulation-item-desc">건조·하강</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">적도 저압대</span>
+                    <span class="circulation-item-desc">상승</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">아열대 고압대</span>
+                    <span class="circulation-item-desc">건조·하강</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">한대 전선대</span>
+                    <span class="circulation-item-desc">상승</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">극고압대</span>
+                    <span class="circulation-item-desc">찬 공기·하강</span>
+                </div>
+            </div>
+
+            <div id="right-circulation-panel" class="circulation-panel circulation-panel-y absolute hidden">
+                <div class="circulation-item">
+                    <span class="circulation-item-name">극순환</span>
+                    <span class="circulation-item-desc">극동풍</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">페렐 순환</span>
+                    <span class="circulation-item-desc">편서풍</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">헤들리 순환</span>
+                    <span class="circulation-item-desc">북동 무역풍</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">헤들리 순환</span>
+                    <span class="circulation-item-desc">남서 계절풍</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">페렐 순환</span>
+                    <span class="circulation-item-desc">편서풍</span>
+                </div>
+                <div class="circulation-item">
+                    <span class="circulation-item-name">극순환</span>
+                    <span class="circulation-item-desc">극동풍</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -166,7 +302,61 @@
             "티벳고원": { coords: [32.0, 90.0], symbol: "H", exam_freq: "⭐⭐", history: "260914", temp: [-10,-7,-2,3,8,12,14,13,9,3,-5,-9], precip: [2,3,5,10,25,60,100,90,50,15,3,2], image: "https://picsum.photos/seed/tibet/500/250", desc: "고산 툰드라(H). 세계의 지붕으로 불리며, 위도가 낮음에도 한랭한 기후를 보입니다." }
         };
 
-        // 색상 로직
+        // 대기대순환 보조 패널 위치 계산을 위한 캔버스 크기 가져오기
+        const mapElement = document.getElementById('map');
+        const mapHeight = mapElement.clientHeight;
+
+        // 대기대순환 보조 패널 위치 및 크기 설정
+        function updateCirculationPanelPosition(shift = 0) {
+            const leftPanel = document.getElementById('left-circulation-panel');
+            const rightPanel = document.getElementById('right-circulation-panel');
+            
+            // 이미지 비율에 따라 패널 위치 및 크기 조정
+            const imageAspectRatio = mapElement.clientWidth / mapElement.clientHeight;
+            let panelWidth, panelHeight, panelTop;
+
+            if (imageAspectRatio > (16/9)) {
+                // 이미지가 더 넓은 경우 (PC 등)
+                panelWidth = 150;
+                panelHeight = mapHeight * 0.7; // 이미지 높이의 70%
+                panelTop = mapHeight * 0.15; // 이미지 상단에서 15% 띄움
+            } else {
+                // 이미지가 더 좁은 경우 (모바일 등)
+                panelWidth = mapElement.clientWidth * 0.2; // 이미지 너비의 20%
+                panelHeight = mapHeight * 0.8; // 이미지 높이의 80%
+                panelTop = mapHeight * 0.1; // 이미지 상단에서 10% 띄움
+            }
+
+            leftPanel.style.width = `${panelWidth}px`;
+            leftPanel.style.height = `${panelHeight}px`;
+            leftPanel.style.top = `${panelTop + shift}px`;
+            leftPanel.style.left = `calc(50% - ${mapElement.clientWidth / 2 + panelWidth + 20}px)`; // 이미지 왼쪽 20px 옆
+
+            rightPanel.style.width = `${panelWidth}px`;
+            rightPanel.style.height = `${panelHeight}px`;
+            rightPanel.style.top = `${panelTop + shift}px`;
+            rightPanel.style.right = `calc(50% - ${mapElement.clientWidth / 2 + panelWidth + 20}px)`; // 이미지 오른쪽 20px 옆
+
+            // 패널 내부 아이템 크기 및 여백 조정
+            const circulationItems = document.querySelectorAll('.circulation-item');
+            circulationItems.forEach(item => {
+                item.style.marginBottom = `${panelHeight * 0.03}px`;
+                const itemName = item.querySelector('.circulation-item-name');
+                const itemDesc = item.querySelector('.circulation-item-desc');
+                itemName.style.fontSize = `${panelWidth * 0.1}px`;
+                itemDesc.style.fontSize = `${panelWidth * 0.08}px`;
+            });
+        }
+
+        // 초기 위치 설정
+        updateCirculationPanelPosition();
+
+        // 윈도우 리사이즈 시 위치 재설정
+        window.addEventListener('resize', () => {
+            updateCirculationPanelPosition();
+        });
+
+        // 색상 및 맵 초기화
         function getCol(s) {
             const sym = s.toUpperCase();
             if (sym === 'AF') return '#ff0044'; if (sym === 'AM') return '#ff4477';
@@ -179,7 +369,6 @@
             return '#aa00ff'; 
         }
 
-        // 지도 초기화
         const map = L.map('map', { zoomControl: false, tap: true }).setView([20, 20], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -187,7 +376,7 @@
         let myChart = null;
         let currentMarkers = []; 
 
-        // === [1] 리스트 UI 렌더링 ===
+        // === [1] 리스트 UI 렌더링 로직 ===
         function renderList(sortBy = 'default') {
             const listContainer = document.getElementById('city-list');
             listContainer.innerHTML = '';
@@ -216,7 +405,7 @@
             });
         }
 
-        // === [2] 상세 정보 패널 제어 ===
+        // === [2] 상세 정보 표시 로직 ===
         function selectCity(name, d, cardElement) {
             document.querySelectorAll('#city-list > div').forEach(c => c.classList.remove('bg-slate-700', 'border-slate-500'));
             cardElement.classList.add('bg-slate-700', 'border-slate-500');
@@ -234,10 +423,12 @@
             b.innerText = d.symbol; b.style.backgroundColor = col;
             b.style.color = (sym => ['ET','EF','BW','BS','CS'].includes(sym.toUpperCase()) ? '#000' : '#fff')(d.symbol);
 
+            // 이미지 표시
             const imgEl = document.getElementById('city-image');
             if (d.image) { imgEl.src = d.image; imgEl.classList.remove('hidden'); } 
             else { imgEl.classList.add('hidden'); }
 
+            // 차트 렌더링
             const ctx = document.getElementById('climateChart').getContext('2d');
             if (myChart) myChart.destroy();
             myChart = new Chart(ctx, {
@@ -260,56 +451,155 @@
 
         // === [3] 기후 엔진 (대기대순환 및 계절풍 시뮬레이터) ===
         let climateLayerGrp = L.layerGroup().addTo(map);
-        const longitudes = [-140, -40, 60, 140]; // 경도별 바람 기준선
+
+        // 기본 바람 경로 (무역풍, 편서풍 등) - 이미지 스타일 화살표 적용을 위한 데이터
+        const winds = [
+            { path: [[35, -30], [15, -60]], type: 'trade_ne', desc: '북동 무역풍', labelPos: [25, -45] }, 
+            { path: [[-35, -10], [-15, -40]], type: 'trade_se', desc: '남동 무역풍', labelPos: [-25, -25] },
+            { path: [[35, 180], [15, 140]], type: 'trade_ne', desc: '북동 무역풍', labelPos: [25, 160] },
+            { path: [[-35, 100], [-15, 60]], type: 'trade_se', desc: '남서 무역풍', labelPos: [-25, 80] }, // 인도양 남서 무역풍
+            { path: [[40, -120], [50, -80]], type: 'westerly_n', desc: '편서풍', labelPos: [45, -100] },
+            { path: [[-40, 20], [-50, 60]], type: 'westerly_s', desc: '편서풍', labelPos: [-45, 40] },
+            { path: [[-5, 60], [20, 80]], type: 'monsoon_summer', desc: '여름 남서계절풍', labelPos: [7, 70] }, // 여름 계절풍 추가
+            { path: [[25, 110], [0, 100]], type: 'monsoon_winter', desc: '겨울 북동계절풍', labelPos: [12, 105] } // 겨울 계절풍 추가
+        ];
+
+        // 특정 지역 표시 데이터
+        const regions = [
+            { pos: [85, 0], desc: '극고압대' },
+            { pos: [60, 0], desc: '아극 저압대' },
+            { pos: [30, 0], desc: '아열대 고압대' },
+            { pos: [0, 0], desc: '적도 저압대' },
+            { pos: [-30, 0], desc: '아열대 고압대' },
+            { pos: [-60, 0], desc: '아극 저압대' },
+            { pos: [-85, 0], desc: '극고압대' },
+            { pos: [65, 0], desc: 'ARC', regionMarker: true },
+            { pos: [35, 120], desc: 'EAS', regionMarker: true },
+            { pos: [20, 90], desc: 'MON', regionMarker: true },
+            { pos: [0, 100], desc: 'EQT', regionMarker: true },
+            { pos: [-30, -60], desc: 'LEE', regionMarker: true },
+            { pos: [-75, 0], desc: 'ICE', regionMarker: true }
+        ];
 
         function updateClimateEngine(month) {
             climateLayerGrp.clearLayers();
             document.getElementById('month-display').innerText = month + '월';
 
+            // 이전 라벨 및 마커 제거
+            const prevLabels = document.querySelectorAll('.wind-label, .region-marker');
+            prevLabels.forEach(el => el.remove());
+
+            // 1. ITCZ 위도 계산 (수학적 보간 - 1월 남쪽, 7월 북쪽) - 열적도의 이동 모식화
             const shift = -Math.cos((month - 1) * Math.PI / 6) * 10; 
 
-            // 1. 아열대 고압대 (노란색 밴드)
-            L.polyline([[30 + shift, -180], [30 + shift, 180]], { color: '#eab308', weight: 25, opacity: 0.2 }).addTo(climateLayerGrp).bindTooltip("북반구 아열대 고압대", {sticky: true});
-            L.polyline([[-30 + shift, -180], [-30 + shift, 180]], { color: '#eab308', weight: 25, opacity: 0.2 }).addTo(climateLayerGrp).bindTooltip("남반구 아열대 고압대", {sticky: true});
-
-            // 2. 적도 수렴대 (ITCZ)
-            const realisticItcz = [
-                [shift, -180], [shift+2, -100], [shift-5, -60], 
-                [shift+5, 20], [shift+15, 80], [shift+5, 140], [shift, 180]
+            // ITCZ 라인 그리기
+            const itczPoints = [
+                [-180, 5, 3], [-120, 5, 5], [-60, 0, 15], /* 남미 */ [-20, 5, 5], 
+                [20, 5, 15], /* 아프리카 */ [60, 5, 10], [90, 5, 20], /* 인도 */ [130, 0, 15], [180, 5, 3]
             ];
-            L.polyline(realisticItcz, {
+            const currentItczCoords = itczPoints.map(p => [p[1] + (p[2] * (shift / 10)), p[0]]);
+
+            L.polyline(currentItczCoords, {
                 color: month >= 5 && month <= 9 ? '#ef4444' : '#3b82f6', 
-                weight: 6, opacity: 0.7, dashArray: '10, 15', lineCap: 'round'
-            }).addTo(climateLayerGrp).bindTooltip(`적도 수렴대(ITCZ) (${month}월)`, {sticky: true});
+                weight: 5, opacity: 0.6, dashArray: '10, 15', lineCap: 'round'
+            }).addTo(climateLayerGrp);
 
-            // 3. 바람 (대기대순환 + 계절풍)
-            let winds = [];
-            longitudes.forEach(lon => {
-                winds.push({ path: [[25 + shift, lon], [5 + shift, lon - 30]], color: '#86efac', pulse: '#16a34a', desc: '북동무역풍' });
-                winds.push({ path: [[-25 + shift, lon], [-5 + shift, lon - 30]], color: '#86efac', pulse: '#16a34a', desc: '남동무역풍' });
-                winds.push({ path: [[35 + shift, lon - 20], [55 + shift, lon + 20]], color: '#bfdbfe', pulse: '#2563eb', desc: '편서풍' });
-                winds.push({ path: [[-35 + shift, lon - 20], [-55 + shift, lon + 20]], color: '#bfdbfe', pulse: '#2563eb', desc: '편서풍' });
-                winds.push({ path: [[80 + shift, lon], [65 + shift, lon - 30]], color: '#e2e8f0', pulse: '#64748b', desc: '극동풍' });
-                winds.push({ path: [[-80 + shift, lon], [-65 + shift, lon - 30]], color: '#e2e8f0', pulse: '#64748b', desc: '극동풍' });
-            });
-
-            if (month >= 6 && month <= 8) { // 여름철 몬순
-                winds.push({ path: [[-5, 60], [25, 80]], color: '#fca5a5', pulse: '#dc2626', desc: '여름철 남서계절풍', weight: 4 });
-                winds.push({ path: [[10, 110], [35, 125]], color: '#fca5a5', pulse: '#dc2626', desc: '여름철 남동계절풍', weight: 4 });
-            } else if (month >= 11 || month <= 2) { // 겨울철 몬순
-                winds.push({ path: [[25, 80], [0, 60]], color: '#93c5fd', pulse: '#1d4ed8', desc: '겨울철 북동계절풍', weight: 4 });
-                winds.push({ path: [[45, 120], [20, 130]], color: '#93c5fd', pulse: '#1d4ed8', desc: '겨울철 북서계절풍', weight: 4 });
-            }
-
+            // 2. 바람 흐름 (AntPath 애니메이션) 및 라벨 표시
             winds.forEach(w => {
-                L.polyline.antPath(w.path, { delay: 2000, dashArray: [10, 20], weight: w.weight || 3, color: w.color, pulseColor: w.pulse, paused: false, reverse: false }).addTo(climateLayerGrp).bindTooltip(w.desc);
+                let active = false;
+                let color = "#ffffff";
+                let pulseColor = "#64748b";
+
+                if (w.type.includes('trade') || w.type.includes('westerly')) {
+                    active = true; // 무역풍/편서풍은 연중 붊
+                } else if (w.type === 'monsoon_summer' && month >= 5 && month <= 9) {
+                    active = true; color = "#fca5a5"; pulseColor = "#ef4444"; // 여름 (빨강 톤)
+                } else if (w.type === 'monsoon_winter' && (month >= 11 || month <= 3)) {
+                    active = true; color = "#93c5fd"; pulseColor = "#3b82f6"; // 겨울 (파랑 톤)
+                }
+
+                if (active) {
+                    // 바람 화살표 라인 (AntPath)
+                    L.polyline.antPath(w.path, {
+                        delay: 2000, dashArray: [10, 20], weight: 3, color: color, pulseColor: pulseColor, paused: false, reverse: false,
+                        className: 'wind-arrow' // 스타일 적용을 위한 클래스 이름 추가
+                    }).addTo(climateLayerGrp);
+
+                    // 바람 라벨 표시
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'wind-label';
+                    labelDiv.innerText = w.desc;
+                    const labelPoint = map.latLngToContainerPoint(w.labelPos);
+                    labelDiv.style.left = `${labelPoint.x}px`;
+                    labelDiv.style.top = `${labelPoint.y}px`;
+                    mapElement.appendChild(labelDiv);
+                }
             });
+
+            // 3. 기압대 및 특정 지역 표시
+            regions.forEach(r => {
+                if (r.regionMarker) {
+                    // 특정 지역 마커 (원형)
+                    const markerDiv = document.createElement('div');
+                    markerDiv.classNameRegionMarker = 'region-marker';
+                    markerDiv.innerText = r.desc;
+                    const markerPoint = map.latLngToContainerPoint(r.pos);
+                    markerDiv.style.left = `${markerPoint.x}px`;
+                    markerDiv.style.top = `${markerPoint.y}px`;
+                    mapElement.appendChild(markerDiv);
+                } else {
+                    // 기압대 라벨 (위도 고정)
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'wind-label';
+                    labelDiv.style.backgroundColor = 'rgba(15, 23, 42, 0.5)';
+                    labelDiv.innerText = r.desc;
+                    const labelPoint = map.latLngToContainerPoint(r.pos);
+                    labelDiv.style.left = `calc(50% - ${mapElement.clientWidth / 2 + 60}px)`; // 이미지 왼쪽 60px 옆
+                    labelDiv.style.top = `${labelPoint.y}px`;
+                    mapElement.appendChild(labelDiv);
+                }
+            });
+
+            // 4. 대기대순환 보조 패널 위치 업데이트
+            // 이미지 좌표계 상의 shift 값을 캔버스 좌표계의 픽셀 값으로 변환해야 함
+            // Leaflet의 latLngToContainerPoint를 활용하여 기준 위도의 픽셀 차이를 계산
+            const refLatLng = L.latLng(0, 0); // 기준 위경도
+            const shiftedRefLatLng = L.latLng(shift, 0); // shift 적용된 위경도
+            const refPoint = map.latLngToContainerPoint(refLatLng);
+            const shiftedRefPoint = map.latLngToContainerPoint(shiftedRefLatLng);
+            const pixelShift = shiftedRefPoint.y - refPoint.y; // Y축 픽셀 차이
+
+            updateCirculationPanelPosition(pixelShift);
         }
 
-        // === [4] 이벤트 리스너 및 초기화 ===
+        // 대기대순환 토글 스위치 이벤트 리스너
+        document.getElementById('circulation-toggle').addEventListener('change', (e) => {
+            const leftPanel = document.getElementById('left-circulation-panel');
+            const rightPanel = document.getElementById('right-circulation-panel');
+            const windLabels = document.querySelectorAll('.wind-label');
+            const regionMarkers = document.querySelectorAll('.region-marker');
+            const circulationPanelYs = document.querySelectorAll('.circulation-panel-y');
+
+            if (e.target.checked) {
+                leftPanel.classList.remove('hidden');
+                rightPanel.classList.remove('hidden');
+                windLabels.forEach(el => el.style.display = 'block');
+                regionMarkers.forEach(el => el.style.display = 'block');
+                circulationPanelYs.forEach(el => el.style.display = 'flex');
+                
+            } else {
+                leftPanel.classList.add('hidden');
+                rightPanel.classList.add('hidden');
+                windLabels.forEach(el => el.style.display = 'none');
+                regionMarkers.forEach(el => el.style.display = 'none');
+                circulationPanelYs.forEach(el => el.style.display = 'none');
+            }
+        });
+
         document.getElementById('month-slider').addEventListener('input', (e) => updateClimateEngine(e.target.value));
-        document.getElementById('sort-select').addEventListener('change', (e) => renderList(e.target.value));
         
+        // 🚀 앱 초기화
+        document.getElementById('sort-select').addEventListener('change', (e) => renderList(e.target.value));
         renderList();
         updateClimateEngine(1);
 
