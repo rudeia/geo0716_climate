@@ -27,7 +27,7 @@
         /* 지도가 들어갈 중앙 영역 */
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
         
-        /* 대기대순환 텍스트 마커 스타일 (자바스크립트로 Top 위치가 실시간 동기화됨) */
+        /* 대기대순환 텍스트 마커 스타일 */
         .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; }
         .badge { display: inline-block; background-color: #1e293b; border: 1px solid #475569; padding: 4px 8px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
         .badge-title { font-size: 11px; font-weight: 900; color: #f8fafc; }
@@ -38,11 +38,12 @@
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
             .main-workspace { height: 60%; order: 1; }
-            .circ-panel { width: 70px; } /* 모바일에서는 패널 너비 축소 */
+            .circ-panel { width: 70px; }
             .badge { padding: 2px 4px; }
             .badge-title { font-size: 9px; }
             .badge-desc { font-size: 7px; }
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
+            .climate-engine { top: auto; bottom: 1rem; right: 50%; transform: translateX(50%); width: 90%; max-width: 350px; padding: 0.75rem !important; }
         }
         
         .custom-scroll::-webkit-scrollbar { width: 4px; }
@@ -87,11 +88,10 @@
         </div>
         
         <div class="main-workspace">
-            
             <div id="circ-left" class="circ-panel"></div>
 
             <div id="map" class="relative">
-                <div class="absolute top-4 right-4 z-[1000] bg-slate-900/90 p-4 rounded-xl border border-slate-700 shadow-2xl backdrop-blur-md w-64 md:w-72">
+                <div class="climate-engine absolute top-4 right-4 z-[1000] bg-slate-900/90 p-4 rounded-xl border border-slate-700 shadow-2xl backdrop-blur-md w-64 md:w-72">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-slate-300 font-black text-[11px]">월별 기후 설정</span>
                         <span id="month-display" class="text-blue-400 font-bold text-base">1월</span>
@@ -100,7 +100,6 @@
                     <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-bold mb-3">
                         <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>12월</span>
                     </div>
-                    
                     <div class="border-t border-slate-700 pt-3 flex items-center justify-between">
                         <span class="text-[10px] text-slate-400 font-bold">기후 변화 표시 (ON/OFF)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -131,7 +130,7 @@
             "상하이": { coords: [31.23, 121.47], symbol: "Cfa", exam_freq: "⭐⭐", history: "240619", temp: [4.8,6.6,10.6,16.2,21.3,25.1,28.6,28.5,24.8,19.3,13.3,7.5], precip: [52,59,90,84,101,171,156,209,128,71,61,37], image: "https://picsum.photos/seed/shanghai/500/250", desc: "온난 습윤(Cfa). 여름에는 계절풍으로 고온다우하고 겨울에는 비교적 한랭합니다." },
             "모스크바": { coords: [55.75, 37.61], symbol: "Df", exam_freq: "⭐", history: "241112", temp: [-6.5,-6.7,-1.0,6.7,13.2,17.0,19.2,17.0,11.3,5.6,-1.2,-5.2], precip: [52,41,35,37,51,80,85,82,68,71,54,51], image: "https://picsum.photos/seed/moscow/500/250", desc: "냉대 습윤(Df). 대륙 내부지만 편서풍을 타고 겨울에도 눈이 고르게 내립니다." },
             "배로(우트키아빅)": { coords: [71.29, -156.78], symbol: "ET", exam_freq: "⭐⭐⭐⭐⭐", history: "221116", temp: [-25.2,-28.2,-26.3,-18.3,-7.1,2.1,4.9,4.2,0.9,-7.3,-16.2,-22.5], precip: [4,4,4,5,5,8,24,26,18,12,6,4], image: "https://picsum.photos/seed/barrow/500/250", desc: "툰드라(ET). 최난월 10℃ 미만으로, 여름에 표면이 녹아 이끼가 자라며 순록 유목을 합니다." }
-            // (핵심 13개 지점만 간소화 탑재 - 실제 사용시 이전 코드의 73개로 교체 가능)
+            // (핵심 지점 외 나머지 기존 73곳 추가 가능)
         };
 
         function getCol(s) {
@@ -189,9 +188,9 @@
         // === [3] 기후 엔진 (화살표 바람 & 패널 동기화) ===
         let climateLayerGrp = L.layerGroup().addTo(map);
         let currentMonth = 1;
-        let isEngineActive = true; // 패널 및 시뮬레이션 ON/OFF 상태를 관리하는 변수
+        let isEngineActive = true; 
 
-        // 양옆 패널 데이터
+        // 양옆 패널 텍스트 데이터
         const leftCircData = [
             { baseLat: 90, title: "극고압대", desc: "찬 공기·하강 ↓" },
             { baseLat: 60, title: "한대 전선대", desc: "상승 기류 ↑" },
@@ -220,6 +219,7 @@
                     <div class="badge"><div class="badge-title">${d.title}</div><div class="badge-desc">${d.desc}</div></div>
                 </div>`;
             });
+
             rightCircData.forEach((d, i) => {
                 rightPanel.innerHTML += `<div id="r-marker-${i}" class="circ-marker" data-lat="${d.baseLat}">
                     <div class="badge"><div class="badge-title">${d.title}</div><div class="badge-desc">${d.desc}</div></div>
@@ -228,60 +228,66 @@
         }
         initCircPanels();
 
-        // 화살표 그리기 함수
-        function drawWindArrow(startLat, startLon, endLat, endLon, color) {
-            const line = L.polyline([[startLat, startLon], [endLat, endLon]], {color: color, weight: 2, opacity: 0.5}).addTo(climateLayerGrp);
+        // 다중 포인트 화살표 그리기 (전향력 등 곡선 표현용)
+        function drawWindPath(latLngs, color) {
+            const line = L.polyline(latLngs, {color: color, weight: 2, opacity: 0.6}).addTo(climateLayerGrp);
             L.polylineDecorator(line, {
-                patterns: [ { offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 12, polygon: false, pathOptions: {stroke: true, weight: 3, color: color, opacity: 0.9}}) } ]
+                patterns: [ { offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 12, polygon: false, pathOptions: {stroke: true, weight: 3, color: color, opacity: 1}}) } ]
             }).addTo(climateLayerGrp);
         }
 
-        // 실시간 패널 동기화
+        // 실시간 패널 동기화 (지도 패닝 시)
         function updatePanelPositions() {
-            if (!isEngineActive) return; // 엔진이 꺼져있으면 동기화 중지
+            if (!isEngineActive) return;
             const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 10; 
             document.querySelectorAll('.circ-marker').forEach(el => {
                 const baseLat = parseFloat(el.dataset.lat);
-                const targetLat = baseLat + (shift * 0.8);
+                const targetLat = baseLat + (shift * 0.8); 
                 const pt = map.latLngToContainerPoint([targetLat, 0]);
                 el.style.top = `${pt.y}px`;
             });
         }
 
-        // 기후 요소 그리기 (ON 상태일 때만)
+        // 지도 위 기후 레이어 그리기
         function redrawMapLayers() {
             climateLayerGrp.clearLayers();
-            if (!isEngineActive) return; // 스위치가 OFF면 여기서 종료 (지도와 도시 마커만 남음)
+            if (!isEngineActive) return; // 엔진 끄면 아무것도 안 그림 (지도+도시만 남음)
 
             const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 10;
 
-            // 적도선 (위도 0°) 추가 (노란색 점선)
-            L.polyline([[0, -180], [0, 180]], { color: '#fbbf24', weight: 2, dashArray: '5,5', opacity: 0.8 }).addTo(climateLayerGrp).bindTooltip('적도 (0°)');
+            // 1. 기준선 (적도 및 회귀선)
+            L.polyline([[0, -180], [0, 180]], { color: '#fbbf24', weight: 2, dashArray: '5,5', opacity: 0.8 }).addTo(climateLayerGrp).bindTooltip('적도 (위도 0°)');
+            L.polyline([[23.5, -180], [23.5, 180]], { color: '#a1a1aa', weight: 1.5, dashArray: '4,4', opacity: 0.6 }).addTo(climateLayerGrp).bindTooltip('북회귀선 (23.5°N)');
+            L.polyline([[-23.5, -180], [-23.5, 180]], { color: '#a1a1aa', weight: 1.5, dashArray: '4,4', opacity: 0.6 }).addTo(climateLayerGrp).bindTooltip('남회귀선 (23.5°S)');
 
-            // 아열대 고압대 점선 띠
-            L.polyline([[30 + shift, -180], [30 + shift, 180]], { color: '#fb923c', weight: 4, dashArray: '10,15', opacity: 0.8 }).addTo(climateLayerGrp);
-            L.polyline([[-30 + shift, -180], [-30 + shift, 180]], { color: '#fb923c', weight: 4, dashArray: '10,15', opacity: 0.8 }).addTo(climateLayerGrp);
+            // 2. 아열대 고압대 점선 띠 (주황색)
+            L.polyline([[30 + shift, -180], [30 + shift, 180]], { color: '#fb923c', weight: 4, dashArray: '10,15', opacity: 0.8 }).addTo(climateLayerGrp).bindTooltip('북반구 아열대 고압대 (하강기류·건조 기후 형성)');
+            L.polyline([[-30 + shift, -180], [-30 + shift, 180]], { color: '#fb923c', weight: 4, dashArray: '10,15', opacity: 0.8 }).addTo(climateLayerGrp).bindTooltip('남반구 아열대 고압대 (하강기류·건조 기후 형성)');
 
-            // 적도 수렴대 (ITCZ)
+            // 3. 적도 수렴대 (ITCZ)
             const itczCoords = [ [shift, -180], [shift+5, -60], [shift+15, 20], [shift+20, 90], [shift, 180] ];
-            L.polyline(itczCoords, { color: currentMonth >= 5 && currentMonth <= 9 ? '#ef4444' : '#3b82f6', weight: 4, dashArray: '15,10', opacity: 0.9 }).addTo(climateLayerGrp);
+            L.polyline(itczCoords, { color: currentMonth >= 5 && currentMonth <= 9 ? '#ef4444' : '#3b82f6', weight: 4, dashArray: '15,10', opacity: 0.9 }).addTo(climateLayerGrp).bindTooltip('적도 수렴대 (상승기류·강수)');
 
-            // 지구 전역의 바람 (화살표)
+            // 4. 지구 전역 항상풍 화살표
             const lons = [-120, -40, 40, 120];
             lons.forEach(lon => {
-                drawWindArrow(25 + shift, lon, 5 + shift, lon - 30, '#fde047'); // 무역풍
-                drawWindArrow(-25 + shift, lon, -5 + shift, lon - 30, '#fde047');
-                drawWindArrow(35 + shift, lon - 20, 55 + shift, lon + 20, '#93c5fd'); // 편서풍
-                drawWindArrow(-35 + shift, lon - 20, -55 + shift, lon + 20, '#93c5fd');
-                drawWindArrow(80 + shift, lon, 65 + shift, lon - 30, '#f8fafc'); // 극동풍
-                drawWindArrow(-80 + shift, lon, -65 + shift, lon - 30, '#f8fafc');
+                drawWindPath([[25 + shift, lon], [5 + shift, lon - 30]], '#fde047'); // 북동 무역풍
+                drawWindPath([[-25 + shift, lon], [-5 + shift, lon - 30]], '#fde047'); // 남동 무역풍
+                drawWindPath([[35 + shift, lon - 20], [55 + shift, lon + 20]], '#93c5fd'); // 편서풍(북)
+                drawWindPath([[-35 + shift, lon - 20], [-55 + shift, lon + 20]], '#93c5fd'); // 편서풍(남)
+                drawWindPath([[80 + shift, lon], [65 + shift, lon - 30]], '#f8fafc'); // 극동풍(북)
+                drawWindPath([[-80 + shift, lon], [-65 + shift, lon - 30]], '#f8fafc'); // 극동풍(남)
             });
 
-            // 몬순 (계절풍)
-            if (currentMonth >= 6 && currentMonth <= 8) {
-                drawWindArrow(-5, 60, 25, 80, '#ef4444'); drawWindArrow(5, 100, 35, 120, '#ef4444');
-            } else if (currentMonth >= 11 || currentMonth <= 2) {
-                drawWindArrow(25, 80, -5, 60, '#3b82f6'); drawWindArrow(45, 120, 15, 130, '#3b82f6');
+            // 5. 몬순 (계절풍) - 전향력(Coriolis) 반영 곡선
+            if (currentMonth >= 6 && currentMonth <= 8) { 
+                // 여름철: 남반구 남동무역풍이 적도를 지나 우측(북반구)으로 꺾여 남서계절풍이 됨
+                drawWindPath([[-15, 60], [0, 65], [25, 80]], '#ef4444'); // 인도양
+                drawWindPath([[-10, 100], [0, 105], [35, 120]], '#ef4444'); // 동아시아
+            } else if (currentMonth >= 11 || currentMonth <= 2) { 
+                // 겨울철: 북반구 북동계절풍이 적도를 지나 좌측(남반구)으로 꺾여 북서계절풍이 됨
+                drawWindPath([[25, 80], [0, 70], [-15, 65]], '#3b82f6'); // 인도양~호주
+                drawWindPath([[45, 120], [0, 110], [-15, 120]], '#3b82f6'); // 동아시아~호주 북부
             }
         }
 
@@ -293,30 +299,26 @@
             updatePanelPositions();
         });
 
-        // 줌/팬 발생 시 텍스트 위치 동기화
         map.on('move zoom', updatePanelPositions);
 
-        // ON/OFF 스위치 제어 로직 (끄면 지도와 도시만 남음)
         document.getElementById('panel-toggle').addEventListener('change', (e) => {
             isEngineActive = e.target.checked;
             const panels = document.querySelectorAll('.circ-panel');
             
             if(isEngineActive) {
-                // 켜기
                 panels.forEach(p => p.style.width = window.innerWidth <= 768 ? '70px' : '140px');
                 document.querySelectorAll('.circ-marker').forEach(m => m.style.display = 'block');
                 redrawMapLayers();
-                updatePanelPositions();
+                setTimeout(updatePanelPositions, 350); // 패널 트랜지션 완료 후 동기화
             } else {
-                // 끄기
                 panels.forEach(p => p.style.width = '0px');
                 document.querySelectorAll('.circ-marker').forEach(m => m.style.display = 'none');
-                climateLayerGrp.clearLayers(); // 지도상의 모든 기후 변화 그래픽 지우기
+                climateLayerGrp.clearLayers(); // 레이어 삭제 (지도와 도시만 남음)
             }
             setTimeout(() => map.invalidateSize(), 300);
         });
 
-        // 앱 초기화
+        // 초기화
         renderList();
         redrawMapLayers();
         updatePanelPositions();
