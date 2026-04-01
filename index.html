@@ -14,19 +14,11 @@
         body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f1f5f9; margin: 0; overflow: hidden; }
         
         .app-container { display: flex; height: 100vh; width: 100vw; }
-        
-        /* 1. 좌측 사이드바 */
         .sidebar { width: 350px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
-        
-        /* 2. 메인 워크스페이스 */
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
-        
-        /* 좌우 패널 */
         .circ-panel { width: 160px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
-        
-        /* 순환 세포 SVG 아크 레이어 */
         #svg-arcs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
         .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
@@ -53,7 +45,7 @@
             .circ-panel { width: 70px; }
             .badge { padding: 3px 6px; }
             .badge-title { font-size: 9px; }
-            .badge-desc { font-size: 7px; }
+            .badge-desc { font-size: 7px; display: none; }
             .vert-marker { font-size: 8px; padding: 2px 4px; }
             .vert-left { right: -15px; } .vert-right { left: -15px; }
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
@@ -148,8 +140,10 @@
     </div>
 
     <script>
+        // --- [데이터베이스 간소화본] ---
         const climateData = {
             "싱가포르": { coords: [1.35, 103.81], symbol: "Af", exam_freq: "⭐", temp: [26,27,27,28,28,28,28,28,27,27,27,26], precip: [234,183,185,179,171,130,154,148,163,191,250,269], image: "https://picsum.photos/seed/singapore/500/250", desc: "열대 우림(Af). 연중 적도 수렴대의 영향을 받아 고온 다습합니다." },
+            "양곤": { coords: [16.86, 96.19], symbol: "Am", exam_freq: "⭐⭐", temp: [25,27,29,30,28,27,26,26,27,28,27,25], precip: [5,2,7,15,300,500,550,540,390,200,60,10], image: "https://picsum.photos/seed/yangon/500/250", desc: "열대 몬순(Am). 여름철 계절풍의 영향을 받아 강수량이 집중됩니다." },
             "다윈": { coords: [-12.46, 130.84], symbol: "Aw", exam_freq: "⭐⭐⭐⭐⭐", temp: [28,28,28,28,27,25,25,26,28,29,29,29], precip: [426,374,319,101,21,2,1,5,15,70,142,251], image: "https://picsum.photos/seed/darwin/500/250", desc: "사바나(Aw). 1월 우기, 7월 건기가 뚜렷합니다." },
             "카이로": { coords: [30.04, 31.23], symbol: "BW", exam_freq: "⭐", temp: [13,15,17,21,25,27,28,27,26,23,18,15], precip: [5,4,4,1,1,0,0,0,0,1,3,5], image: "https://picsum.photos/seed/cairo/500/250", desc: "건조 사막(BW). 아열대 고압대의 영향으로 강수량이 극히 적습니다." },
             "로마": { coords: [41.90, 12.49], symbol: "Cs", exam_freq: "⭐⭐⭐⭐", temp: [7.5,8.2,10.5,13.1,17.3,21.3,24.1,24.1,20.9,16.3,11.9,8.7], precip: [81,71,65,67,49,36,18,38,68,93,111,98], image: "https://picsum.photos/seed/rome/500/250", desc: "지중해성(Cs). 여름은 아열대 고압대로 건조하고 겨울은 습윤합니다." },
@@ -223,16 +217,10 @@
         document.getElementById('climate-filter').addEventListener('change', renderList);
         document.getElementById('sort-select').addEventListener('change', renderList);
         document.getElementById('close-btn').addEventListener('click', () => { document.getElementById('detail-panel').classList.add('hidden'); });
-
         document.getElementById('reset-btn').addEventListener('click', () => {
-            document.getElementById('search-input').value = '';
-            document.getElementById('climate-filter').value = 'all';
-            document.getElementById('sort-select').value = 'default';
-            renderList();
-            document.getElementById('detail-panel').classList.add('hidden');
-            map.flyTo([10, 20], 2, { duration: 1.5 });
+            document.getElementById('search-input').value = ''; document.getElementById('climate-filter').value = 'all'; document.getElementById('sort-select').value = 'default';
+            renderList(); document.getElementById('detail-panel').classList.add('hidden'); map.flyTo([10, 20], 2, { duration: 1.5 });
         });
-
         document.getElementById('mobile-settings-btn').addEventListener('click', () => { document.getElementById('climate-engine').classList.toggle('show'); });
 
         // --- [대기대순환 시각화 엔진] ---
@@ -240,13 +228,14 @@
         let currentMonth = 1;
         let isEngineActive = true; 
 
+        // 🌟 수정 반영: 아극 저압대 -> 한대전선대
         const vertData = [
             { lat: 90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
-            { lat: 60, title: "아극 저압대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
+            { lat: 60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
             { lat: 30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
             { lat: 0, title: "적도 저압대", desc: "수렴·강한 상승", type: "rise", symbol: "↑ 강한 상승", col: "color-rise" },
             { lat: -30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
-            { lat: -60, title: "아극 저압대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
+            { lat: -60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
             { lat: -90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" }
         ];
 
@@ -282,18 +271,40 @@
             L.polylineDecorator(line, { patterns: [ { offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: true, pathOptions: {stroke: false, fillOpacity: 1, color: color}}) } ] }).addTo(climateLayerGrp);
         }
 
+        // 🌟 수정 반영: ITCZ 다변화 수학적 보간 (경도별 육지/바다 차이 적용)
+        const lonsITCZ = [-180, -120, -60, -20, 20, 80, 120, 180];
+        const janITCZ = [ 3, 0, -15, 0, -15, -10, -15, 0 ]; // 1월: 남미, 아프리카, 호주에서 남하
+        const julITCZ = [ 8, 10, 5, 5, 15, 25, 15, 10 ];    // 7월: 아시아, 아프리카에서 크게 북상
+
+        function getItczLat(targetLon) {
+            let lon = targetLon;
+            while(lon < -180) lon += 360; while(lon > 180) lon -= 360;
+            const t = 0.5 - 0.5 * Math.cos((currentMonth - 1) * Math.PI / 6); // 1월=0, 7월=1
+            for(let i=0; i<lonsITCZ.length-1; i++) {
+                if(lon >= lonsITCZ[i] && lon <= lonsITCZ[i+1]) {
+                    const ratio = (lon - lonsITCZ[i]) / (lonsITCZ[i+1] - lonsITCZ[i]);
+                    const lat1 = janITCZ[i] + t * (julITCZ[i] - janITCZ[i]);
+                    const lat2 = janITCZ[i+1] + t * (julITCZ[i+1] - janITCZ[i+1]);
+                    return lat1 + ratio * (lat2 - lat1);
+                }
+            }
+            return 0;
+        }
+
         function redrawClimateMap() {
             climateLayerGrp.clearLayers();
             if (!isEngineActive) return;
 
-            const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 10;
+            const genShift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 5; // 일반 기압대 이동 (ITCZ보다 폭이 좁음)
 
+            // 기준선 (적도, 회귀선)
             L.polyline([[0, -180], [0, 180]], { color: '#fbbf24', weight: 1.5, dashArray: '5,5', opacity: 0.7 }).addTo(climateLayerGrp);
             L.polyline([[23.5, -180], [23.5, 180]], { color: '#94a3b8', weight: 1, dashArray: '3,3', opacity: 0.5 }).addTo(climateLayerGrp);
             L.polyline([[-23.5, -180], [-23.5, 180]], { color: '#94a3b8', weight: 1, dashArray: '3,3', opacity: 0.5 }).addTo(climateLayerGrp);
 
-            const pfjN = 60 + shift; const pfjS = -60 + shift; 
-            const stjN = 30 + shift; const stjS = -30 + shift; 
+            // 제트 기류 및 고압대
+            const pfjN = 60 + genShift; const pfjS = -60 + genShift; 
+            const stjN = 30 + genShift; const stjS = -30 + genShift; 
             L.polyline([[pfjN, -180], [pfjN, 180]], { color: '#06b6d4', weight: 3, dashArray: '15,15', opacity: 0.8 }).addTo(climateLayerGrp);
             L.polyline([[pfjS, -180], [pfjS, 180]], { color: '#06b6d4', weight: 3, dashArray: '15,15', opacity: 0.8 }).addTo(climateLayerGrp);
             L.polyline([[stjN, -180], [stjN, 180]], { color: '#f97316', weight: 3, dashArray: '15,15', opacity: 0.8 }).addTo(climateLayerGrp);
@@ -302,36 +313,49 @@
             L.polygon([[stjN+3, -180], [stjN+3, 180], [stjN-3, 180], [stjN-3, -180]], { color: 'none', fillColor: '#000', fillOpacity: 0.5 }).addTo(climateLayerGrp);
             L.polygon([[stjS+3, -180], [stjS+3, 180], [stjS-3, 180], [stjS-3, -180]], { color: 'none', fillColor: '#000', fillOpacity: 0.5 }).addTo(climateLayerGrp);
 
-            const itczCoords = [ [shift, -180], [shift+3, -100], [shift-2, -40], [shift+8, 20], [shift+15, 90], [shift+5, 140], [shift, 180] ];
-            L.polyline(itczCoords, { color: '#fde047', weight: 3, dashArray: '10,5', opacity: 0.9 }).addTo(climateLayerGrp);
+            // 🌟 수정 반영: ITCZ 동적 라인 그리기 (경도별로 쪼개어 그리기)
+            let itczLinePts = [];
+            for(let lon=-180; lon<=180; lon+=5) { itczLinePts.push([getItczLat(lon), lon]); }
+            L.polyline(itczLinePts, { color: '#fde047', weight: 3, dashArray: '10,5', opacity: 0.9 }).addTo(climateLayerGrp);
 
-            const lons = [-120, -40, 40, 120];
+            // 지구 바람대
+            const lons = [-140, -40, 40, 100, 140];
             const tCol = '#fde047'; const wCol = '#93c5fd'; const pCol = '#e2e8f0';
 
             lons.forEach(lon => {
-                drawWindCurve(40+shift, lon-15, 45+shift, lon-5, 50+shift, lon+5, 55+shift, lon+20, wCol); 
-                drawWindCurve(-40+shift, lon-15, -45+shift, lon-5, -50+shift, lon+5, -55+shift, lon+20, wCol);
-                drawWindCurve(80+shift, lon, 75+shift, lon, 70+shift, lon-10, 65+shift, lon-25, pCol); 
-                drawWindCurve(-80+shift, lon, -75+shift, lon, -70+shift, lon-10, -65+shift, lon-25, pCol);
+                // 편서풍, 극동풍
+                drawWindCurve(40+genShift, lon-10, 45+genShift, lon-5, 50+genShift, lon+5, 55+genShift, lon+15, wCol); 
+                drawWindCurve(-40+genShift, lon-10, -45+genShift, lon-5, -50+genShift, lon+5, -55+genShift, lon+15, wCol);
+                drawWindCurve(80+genShift, lon, 75+genShift, lon, 70+genShift, lon-10, 65+genShift, lon-20, pCol); 
+                drawWindCurve(-80+genShift, lon, -75+genShift, lon, -70+genShift, lon-10, -65+genShift, lon-20, pCol);
 
-                // 💡 겹침 현상 해결: 무역풍이 ITCZ(적도수렴대)까지만 뻗도록 끝 좌표(shift 기준) 정밀 조정
-                if(currentMonth >= 4 && currentMonth <= 9) { 
-                    // 여름철 남반구 남동무역풍 -> 북반구 진입 후 ITCZ(shift)에 수렴
-                    drawWindCurve(-25+shift, lon, -10, lon-15, 0, lon-20, shift-2, lon-5, tCol); 
-                    // 여름철 북반구 북동무역풍 -> ITCZ(shift)로 하강
-                    drawWindCurve(25+shift, lon, 20+shift, lon-5, 15+shift, lon-10, shift+4, lon-15, tCol); 
-                } else { 
-                    // 겨울철 북반구 북동무역풍 -> 남반구 진입 후 ITCZ(shift)에 수렴
-                    drawWindCurve(25+shift, lon, 10, lon-15, 0, lon-20, shift+2, lon-5, tCol); 
-                    // 겨울철 남반구 남동무역풍 -> ITCZ(shift)로 상승
-                    drawWindCurve(-25+shift, lon, -20+shift, lon-5, -15+shift, lon-10, shift-4, lon-15, tCol);
+                // 🌟 수정 반영: 무역풍이 교차하지 않고 정확히 ITCZ 위도에 수렴(Convergence)
+                let targetLat = getItczLat(lon - 15); // 도착 지점의 ITCZ 위도 계산
+
+                // 1) 북동 무역풍 (북에서 남으로)
+                if(targetLat < 0) {
+                    // 남반구로 넘어가며 좌측 꺾임 (S자)
+                    drawWindCurve(25+genShift, lon, 10, lon-10, 0, lon-15, targetLat, lon-5, tCol);
+                } else {
+                    // 북반구 내에서 멈춤
+                    drawWindCurve(25+genShift, lon, 20+genShift, lon-5, targetLat+5, lon-10, targetLat, lon-15, tCol);
+                }
+
+                // 2) 남동 무역풍 (남에서 북으로)
+                if(targetLat > 0) {
+                    // 북반구로 넘어가며 우측 꺾임 (S자)
+                    drawWindCurve(-25+genShift, lon, -10, lon-10, 0, lon-15, targetLat, lon-5, tCol);
+                } else {
+                    // 남반구 내에서 멈춤
+                    drawWindCurve(-25+genShift, lon, -20+genShift, lon-5, targetLat-5, lon-10, targetLat, lon-15, tCol);
                 }
             });
         }
 
+        // 2. 패널 및 SVG 동기화
         function syncPanelsAndSVG() {
             if (!isEngineActive) return;
-            const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 10; 
+            const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 5; // 기압대 라벨 이동
             const svg = document.getElementById('svg-arcs');
             let svgHTML = '';
             const leftYs = []; 
@@ -353,10 +377,13 @@
                 document.getElementById(`r-desc-${i}`).innerText = rTexts[i];
             });
 
+            // SVG 사이드 아크선
             const lWidth = document.getElementById('circ-left').offsetWidth;
             const wsWidth = document.querySelector('.main-workspace').offsetWidth;
             const rWidth = document.getElementById('circ-right').offsetWidth;
-            const leftX = lWidth; const rightX = wsWidth - rWidth; 
+            
+            const leftX = lWidth; 
+            const rightX = wsWidth - rWidth; 
 
             const arcCols = ['#60a5fa', '#fb923c', '#60a5fa', '#60a5fa', '#fb923c', '#60a5fa'];
             
@@ -365,10 +392,10 @@
                 svgHTML += `<path d="M ${leftX},${y1} Q ${leftX+40},${(y1+y2)/2} ${leftX},${y2}" stroke="${arcCols[i]}" fill="none" stroke-width="2.5" opacity="0.8"/>`;
                 svgHTML += `<path d="M ${rightX},${y1} Q ${rightX-40},${(y1+y2)/2} ${rightX},${y2}" stroke="${arcCols[i]}" fill="none" stroke-width="2.5" opacity="0.8"/>`;
             }
-            
             svg.innerHTML = svgHTML;
         }
 
+        // === 이벤트 리스너 ===
         document.getElementById('month-slider').addEventListener('input', (e) => {
             currentMonth = parseInt(e.target.value);
             document.getElementById('month-display').innerText = currentMonth + '월';
@@ -388,7 +415,9 @@
             setTimeout(() => map.invalidateSize(), 300);
         });
 
+        // 🚀 앱 시작
         renderList(); redrawClimateMap(); setTimeout(syncPanelsAndSVG, 100);
+
     </script>
 </body>
 </html>
