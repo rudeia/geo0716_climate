@@ -21,54 +21,43 @@
         /* 2. 메인 워크스페이스 */
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
         
-        /* 좌우 패널 (순환 세포 텍스트 배치 영역) */
+        /* 좌우 패널 */
         .circ-panel { width: 160px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
-        /* 지도 영역 */
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
         
-        /* 순환 세포(Cell) 아크선을 그릴 전체 덮개 SVG 레이어 */
+        /* 순환 세포 SVG 아크 레이어 */
         #svg-arcs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
-        /* 패널 내부 텍스트 배지 */
         .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
         .badge { background-color: #1e293b; border: 1px solid #475569; padding: 6px 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: auto; }
         .badge-title { font-size: 11px; font-weight: 900; color: #f8fafc; }
         .badge-desc { font-size: 9px; color: #94a3b8; margin-top: 2px; }
 
-        /* 상승(↑) 하강(↓) 수직 기류 마커 */
         .vert-marker { position: absolute; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 12px; background: #0f172a; border: 1px solid #475569; transform: translateY(-50%); transition: top 0.1s ease-out; z-index: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.6); pointer-events: auto; }
         .vert-left { right: -25px; } 
         .vert-right { left: -25px; } 
-        .color-rise { color: #fb923c; } /* 주황 */
-        .color-sink { color: #60a5fa; } /* 파랑 */
+        .color-rise { color: #fb923c; } 
+        .color-sink { color: #60a5fa; } 
 
-        /* 컨트롤러 패널 (PC 기본) */
         .climate-engine { position: absolute; top: 20px; right: 20px; z-index: 1000; background: rgba(30, 41, 59, 0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid #475569; backdrop-filter: blur(8px); width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
 
-        /* === 📱 모바일 반응형 UI (수정됨) === */
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
             .main-workspace { height: 60%; order: 1; }
-            
-            /* 패널 너비 및 폰트 축소 */
             .circ-panel { width: 70px; }
             .badge { padding: 3px 6px; }
             .badge-title { font-size: 9px; }
             .badge-desc { font-size: 7px; }
             .vert-marker { font-size: 8px; padding: 2px 4px; }
             .vert-left { right: -15px; } .vert-right { left: -15px; }
-            
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
-            
-            /* 모바일 기후 설정 버튼 보이기 */
             #mobile-settings-btn { display: flex; }
-            /* 기후 컨트롤러 팝업 형태로 변경 및 숨김 */
             .climate-engine { display: none; top: 55px; right: 10px; width: 250px; padding: 10px 15px; }
             .climate-engine.show { display: block; }
         }
@@ -131,7 +120,6 @@
             <div id="circ-left" class="circ-panel"></div>
 
             <div id="map" class="relative">
-                
                 <button id="mobile-settings-btn" class="hidden absolute top-4 right-4 z-[2000] bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold border border-slate-600 shadow-lg items-center gap-1 transition">
                     ⚙️ 기후 설정
                 </button>
@@ -156,12 +144,10 @@
             </div>
 
             <div id="circ-right" class="circ-panel"></div>
-
         </div>
     </div>
 
     <script>
-        // --- [데이터베이스] ---
         const climateData = {
             "싱가포르": { coords: [1.35, 103.81], symbol: "Af", exam_freq: "⭐", temp: [26,27,27,28,28,28,28,28,27,27,27,26], precip: [234,183,185,179,171,130,154,148,163,191,250,269], image: "https://picsum.photos/seed/singapore/500/250", desc: "열대 우림(Af). 연중 적도 수렴대의 영향을 받아 고온 다습합니다." },
             "다윈": { coords: [-12.46, 130.84], symbol: "Aw", exam_freq: "⭐⭐⭐⭐⭐", temp: [28,28,28,28,27,25,25,26,28,29,29,29], precip: [426,374,319,101,21,2,1,5,15,70,142,251], image: "https://picsum.photos/seed/darwin/500/250", desc: "사바나(Aw). 1월 우기, 7월 건기가 뚜렷합니다." },
@@ -169,7 +155,6 @@
             "로마": { coords: [41.90, 12.49], symbol: "Cs", exam_freq: "⭐⭐⭐⭐", temp: [7.5,8.2,10.5,13.1,17.3,21.3,24.1,24.1,20.9,16.3,11.9,8.7], precip: [81,71,65,67,49,36,18,38,68,93,111,98], image: "https://picsum.photos/seed/rome/500/250", desc: "지중해성(Cs). 여름은 아열대 고압대로 건조하고 겨울은 습윤합니다." },
             "런던": { coords: [51.50, -0.12], symbol: "Cfb", exam_freq: "⭐", temp: [5.2,5.3,7.6,9.9,13.3,16.5,18.7,18.5,15.7,12.0,8.4,5.9], precip: [55,41,42,44,46,45,45,50,49,69,59,55], image: "https://picsum.photos/seed/london/500/250", desc: "서안 해양성(Cfb). 편서풍의 영향으로 연중 강수가 고릅니다." },
             "배로": { coords: [71.29, -156.78], symbol: "ET", exam_freq: "⭐⭐⭐⭐⭐", temp: [-25.2,-28.2,-26.3,-18.3,-7.1,2.1,4.9,4.2,0.9,-7.3,-16.2,-22.5], precip: [4,4,4,5,5,8,24,26,18,12,6,4], image: "https://picsum.photos/seed/barrow/500/250", desc: "툰드라(ET). 짧은 여름에만 지표가 녹습니다." }
-            // (필요시 기존 73개 전수 데이터 교체 가능)
         };
 
         function getCol(s) {
@@ -179,7 +164,6 @@
             if(sym.startsWith('E')) return '#f8fafc'; return '#a855f7'; 
         }
 
-        // --- [지도 초기화] ---
         const map = L.map('map', { zoomControl: false, minZoom: 2, maxBounds: [[-90, -180], [90, 180]] }).setView([10, 20], 2);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(map); 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { zIndex: 1000 }).addTo(map); 
@@ -198,9 +182,7 @@
 
             let filteredKeys = Object.keys(climateData).filter(name => {
                 const d = climateData[name];
-                const matchSearch = name.toLowerCase().includes(searchWord);
-                const matchFilter = (filterCode === 'all') || d.symbol.startsWith(filterCode) || (filterCode === 'H' && d.symbol === 'AH');
-                return matchSearch && matchFilter;
+                return name.toLowerCase().includes(searchWord) && ((filterCode === 'all') || d.symbol.startsWith(filterCode) || (filterCode === 'H' && d.symbol === 'AH'));
             });
 
             if (sortMode === 'freq') filteredKeys.sort((a,b) => (climateData[b].exam_freq || "").length - (climateData[a].exam_freq || "").length);
@@ -237,26 +219,21 @@
             });
         }
 
-        // 이벤트 연결
         document.getElementById('search-input').addEventListener('input', renderList);
         document.getElementById('climate-filter').addEventListener('change', renderList);
         document.getElementById('sort-select').addEventListener('change', renderList);
         document.getElementById('close-btn').addEventListener('click', () => { document.getElementById('detail-panel').classList.add('hidden'); });
 
-        // 🌟 모바일 설정 버튼 (우측 상단 팝업 토글)
-        document.getElementById('mobile-settings-btn').addEventListener('click', () => {
-            document.getElementById('climate-engine').classList.toggle('show');
-        });
-
-        // 🌟 초기화 버튼 (리셋)
         document.getElementById('reset-btn').addEventListener('click', () => {
             document.getElementById('search-input').value = '';
             document.getElementById('climate-filter').value = 'all';
             document.getElementById('sort-select').value = 'default';
             renderList();
             document.getElementById('detail-panel').classList.add('hidden');
-            map.flyTo([10, 20], 2, { duration: 1.5 }); // 초기 뷰로 스무스하게 복귀
+            map.flyTo([10, 20], 2, { duration: 1.5 });
         });
+
+        document.getElementById('mobile-settings-btn').addEventListener('click', () => { document.getElementById('climate-engine').classList.toggle('show'); });
 
         // --- [대기대순환 시각화 엔진] ---
         let climateLayerGrp = L.layerGroup().addTo(map);
@@ -267,7 +244,7 @@
             { lat: 90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
             { lat: 60, title: "아극 저압대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
             { lat: 30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
-            { lat: 0, title: "적도 저압대", desc: "수렴·강한 상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
+            { lat: 0, title: "적도 저압대", desc: "수렴·강한 상승", type: "rise", symbol: "↑ 강한 상승", col: "color-rise" },
             { lat: -30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
             { lat: -60, title: "아극 저압대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
             { lat: -90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" }
@@ -305,7 +282,6 @@
             L.polylineDecorator(line, { patterns: [ { offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: true, pathOptions: {stroke: false, fillOpacity: 1, color: color}}) } ] }).addTo(climateLayerGrp);
         }
 
-        // 1. 지도 오버레이(바람대, 기압대, 제트기류)
         function redrawClimateMap() {
             climateLayerGrp.clearLayers();
             if (!isEngineActive) return;
@@ -338,17 +314,21 @@
                 drawWindCurve(80+shift, lon, 75+shift, lon, 70+shift, lon-10, 65+shift, lon-25, pCol); 
                 drawWindCurve(-80+shift, lon, -75+shift, lon, -70+shift, lon-10, -65+shift, lon-25, pCol);
 
+                // 💡 겹침 현상 해결: 무역풍이 ITCZ(적도수렴대)까지만 뻗도록 끝 좌표(shift 기준) 정밀 조정
                 if(currentMonth >= 4 && currentMonth <= 9) { 
-                    drawWindCurve(-25+shift, lon, -10+shift, lon-15, 0, lon-20, 15+shift, lon-5, tCol); 
-                    drawWindCurve(25+shift, lon, 20+shift, lon-5, 15+shift, lon-10, 10+shift, lon-15, tCol); 
+                    // 여름철 남반구 남동무역풍 -> 북반구 진입 후 ITCZ(shift)에 수렴
+                    drawWindCurve(-25+shift, lon, -10, lon-15, 0, lon-20, shift-2, lon-5, tCol); 
+                    // 여름철 북반구 북동무역풍 -> ITCZ(shift)로 하강
+                    drawWindCurve(25+shift, lon, 20+shift, lon-5, 15+shift, lon-10, shift+4, lon-15, tCol); 
                 } else { 
-                    drawWindCurve(25+shift, lon, 10+shift, lon-15, 0, lon-20, -15+shift, lon-5, tCol); 
-                    drawWindCurve(-25+shift, lon, -20+shift, lon-5, -15+shift, lon-10, -10+shift, lon-15, tCol);
+                    // 겨울철 북반구 북동무역풍 -> 남반구 진입 후 ITCZ(shift)에 수렴
+                    drawWindCurve(25+shift, lon, 10, lon-15, 0, lon-20, shift+2, lon-5, tCol); 
+                    // 겨울철 남반구 남동무역풍 -> ITCZ(shift)로 상승
+                    drawWindCurve(-25+shift, lon, -20+shift, lon-5, -15+shift, lon-10, shift-4, lon-15, tCol);
                 }
             });
         }
 
-        // 2. 패널 및 SVG 동기화
         function syncPanelsAndSVG() {
             if (!isEngineActive) return;
             const shift = -Math.cos((currentMonth - 1) * Math.PI / 6) * 10; 
@@ -373,13 +353,10 @@
                 document.getElementById(`r-desc-${i}`).innerText = rTexts[i];
             });
 
-            // SVG 사이드 아크선
             const lWidth = document.getElementById('circ-left').offsetWidth;
             const wsWidth = document.querySelector('.main-workspace').offsetWidth;
             const rWidth = document.getElementById('circ-right').offsetWidth;
-            
-            const leftX = lWidth; 
-            const rightX = wsWidth - rWidth; 
+            const leftX = lWidth; const rightX = wsWidth - rWidth; 
 
             const arcCols = ['#60a5fa', '#fb923c', '#60a5fa', '#60a5fa', '#fb923c', '#60a5fa'];
             
@@ -392,7 +369,6 @@
             svg.innerHTML = svgHTML;
         }
 
-        // === 이벤트 리스너 ===
         document.getElementById('month-slider').addEventListener('input', (e) => {
             currentMonth = parseInt(e.target.value);
             document.getElementById('month-display').innerText = currentMonth + '월';
@@ -412,9 +388,7 @@
             setTimeout(() => map.invalidateSize(), 300);
         });
 
-        // 🚀 앱 시작
         renderList(); redrawClimateMap(); setTimeout(syncPanelsAndSVG, 100);
-
     </script>
 </body>
 </html>
