@@ -10,19 +10,29 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
     <style>
+        /* 🌟 폰트 주소 수정 및 최우선 적용 강제(!important) */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
-        body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: #f1f5f9; margin: 0; overflow: hidden; }
+        * { font-family: 'Pretendard', sans-serif !important; }
+        body { background-color: #0f172a; color: #f1f5f9; margin: 0; overflow: hidden; }
         
         .app-container { display: flex; height: 100vh; width: 100vw; }
         .sidebar { width: 350px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
+        .circ-panel { width: 160px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
-        .circ-panel { width: 80px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
-        #svg-arcs { position: absolute; top: 0; left: 80px; right: 80px; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
+        #svg-arcs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
-        .vert-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; font-weight: 900; font-size: 13px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .rise { color: #f97316; } .sink { color: #3b82f6; }
+        .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
+        .badge { background-color: #1e293b; border: 1px solid #475569; padding: 6px 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: auto; }
+        .badge-title { font-size: 11px; font-weight: 900; color: #f8fafc; }
+        .badge-desc { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+
+        .vert-marker { position: absolute; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 12px; background: #0f172a; border: 1px solid #475569; transform: translateY(-50%); transition: top 0.1s ease-out; z-index: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.6); pointer-events: auto; }
+        .vert-left { right: -25px; } 
+        .vert-right { left: -25px; } 
+        .color-rise { color: #fb923c; } 
+        .color-sink { color: #60a5fa; } 
 
         .climate-engine { position: absolute; top: 20px; right: 20px; z-index: 1000; background: rgba(30, 41, 59, 0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid #475569; backdrop-filter: blur(8px); width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
@@ -34,9 +44,12 @@
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
             .main-workspace { height: 60%; order: 1; }
-            .circ-panel { width: 50px; }
-            .vert-marker { font-size: 11px; }
-            #svg-arcs { left: 50px; right: 50px; }
+            .circ-panel { width: 70px; }
+            .badge { padding: 3px 6px; }
+            .badge-title { font-size: 9px; }
+            .badge-desc { font-size: 7px; display: none; }
+            .vert-marker { font-size: 8px; padding: 2px 4px; }
+            .vert-left { right: -15px; } .vert-right { left: -15px; }
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
             #mobile-settings-btn { display: flex; }
             .climate-engine { display: none; top: 55px; right: 10px; width: 250px; padding: 10px 15px; }
@@ -118,7 +131,7 @@
                         <span>1월</span><span>4월</span><span>7월</span><span>10월</span><span>12월</span>
                     </div>
                     <div class="border-t border-slate-700 pt-3 flex items-center justify-between">
-                        <span class="text-[10px] text-slate-400 font-bold">Hadley 순환 모식도 (ON/OFF)</span>
+                        <span class="text-[10px] text-slate-400 font-bold">순환 모식도 (ON/OFF)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" id="panel-toggle" class="sr-only peer" checked>
                             <div class="w-8 h-4 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
@@ -139,9 +152,6 @@
     </div>
 
     <script>
-        // =====================================================================
-        // [내장형 데이터베이스 107곳] 
-        // =====================================================================
         const rawCSVData = `
 아프리카,가나(쿠마시),31.3,56.4,86.6,161.6,174.8,171.6,131.9,78.5,168.8,171.4,63.8,34.8,26.9,28,28.1,27.6,26.9,25.8,24.9,24.6,25.3,26,26.8,26.7,Aw,6˚43´N,1˚36´W,286,1992~2020,1991~2019,이과연표 2022
 유럽,그리스(아테네 공항),52.2,36.7,37.7,26,16.3,9.8,9.4,2.6,16.6,37,66.1,65.5,10.1,10.6,12.8,16.2,21.1,26.1,28.9,29,24.7,20.1,15.5,11.7,BS,37˚44´N,23˚44´E,28,1991~2020,1991~2020,이과연표 2022
@@ -451,13 +461,13 @@
         let isEngineActive = true; 
 
         const vertData = [
-            { lat: 90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓", text: "하강" },
-            { lat: 60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑", text: "상승" },
-            { lat: 30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓", text: "하강" },
-            { lat: 0, title: "적도 저압대", desc: "수렴·강한 상승", type: "rise", symbol: "↑", text: "상승" },
-            { lat: -30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓", text: "하강" },
-            { lat: -60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑", text: "상승" },
-            { lat: -90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓", text: "하강" }
+            { lat: 90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
+            { lat: 60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
+            { lat: 30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
+            { lat: 0, title: "적도 저압대", desc: "수렴·강한 상승", type: "rise", symbol: "↑ 강한 상승", col: "color-rise" },
+            { lat: -30, title: "아열대 고압대", desc: "건조·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" },
+            { lat: -60, title: "한대전선대", desc: "전선대·상승", type: "rise", symbol: "↑ 상승", col: "color-rise" },
+            { lat: -90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓ 하강", col: "color-sink" }
         ];
 
         const rightWindBands = [
@@ -469,8 +479,12 @@
         function initPanels() {
             const lPanel = document.getElementById('circ-left'); const rPanel = document.getElementById('circ-right');
             vertData.forEach((d, i) => {
-                lPanel.innerHTML += `<div id="l-badge-${i}" class="circ-marker" data-lat="${d.lat}"><div class="badge"><div class="badge-title">${d.title}</div><div class="badge-desc">${d.desc}</div></div></div><div id="l-vert-${i}" class="vert-marker vert-left ${d.type}" data-lat="${d.lat}">${d.symbol}<br>${d.text}</div>`;
-                rPanel.innerHTML += `<div id="r-vert-${i}" class="vert-marker vert-right ${d.type}" data-lat="${d.lat}">${d.symbol}<br>${d.text}</div>`;
+                lPanel.innerHTML += `
+                    <div id="l-badge-${i}" class="circ-marker" data-lat="${d.lat}">
+                        <div class="badge"><div class="badge-title">${d.title}</div><div class="badge-desc">${d.desc}</div></div>
+                    </div>
+                    <div id="l-vert-${i}" class="vert-marker vert-left ${d.col}" data-lat="${d.lat}">${d.symbol}</div>`;
+                rPanel.innerHTML += `<div id="r-vert-${i}" class="vert-marker vert-right ${d.col}" data-lat="${d.lat}">${d.symbol}</div>`;
             });
             rightWindBands.forEach((d, i) => {
                 rPanel.innerHTML += `<div id="r-badge-${i}" class="circ-marker" data-lat="${d.lat}"><div class="badge"><div class="badge-title">${d.title}</div><div id="r-desc-${i}" class="badge-desc font-bold text-yellow-300">${d.desc}</div></div></div>`;
@@ -540,21 +554,25 @@
                 drawWindCurve(80+genShift, lon, 75+genShift, lon, 70+genShift, lon-10, 65+genShift, lon-20, pCol); 
                 drawWindCurve(-80+genShift, lon, -75+genShift, lon, -70+genShift, lon-10, -65+genShift, lon-20, pCol);
 
-                // 🌟 무역풍 및 계절풍 (전향력 S자 궤적 복구 & ITCZ에 정확히 수렴!)
-                let targetLat = getItczLat(lon - 10); 
-                
-                if (currentMonth >= 4 && currentMonth <= 9) { 
-                    // 7월 (ITCZ 북상)
-                    // 남동 무역풍이 적도를 지나 북반구 진입 후 우측 꺾임 (남서 계절풍)
-                    drawWindCurve(-30+genShift, lon, -10, lon-15, 0, lon-25, targetLat-1, lon-5, tCol);
-                    // 북동 무역풍은 북반구에서 ITCZ를 만나 멈춤
-                    drawWindCurve(30+genShift, lon, 20+genShift, lon-5, targetLat+5, lon-10, targetLat+1, lon-15, tCol);
+                // 🌟 무역풍 수렴 및 S자 궤적 완벽 복원
+                let targetLat = getItczLat(lon - 15); 
+
+                // 북동 무역풍 (북에서 남으로 내려와 ITCZ에 도달)
+                if(targetLat < 0) {
+                    // 적도를 넘어 남반구의 ITCZ로 향하며 좌측으로 꺾임 (북서계절풍)
+                    drawWindCurve(25+genShift, lon, 10, lon-10, 0, lon-15, targetLat, lon-5, tCol);
                 } else {
-                    // 1월 (ITCZ 남하)
-                    // 북동 무역풍이 적도를 지나 남반구 진입 후 좌측 꺾임 (북서 계절풍)
-                    drawWindCurve(30+genShift, lon, 10, lon-15, 0, lon-25, targetLat+1, lon-5, tCol);
-                    // 남동 무역풍은 남반구에서 ITCZ를 만나 멈춤
-                    drawWindCurve(-30+genShift, lon, -20+genShift, lon-5, targetLat-5, lon-10, targetLat-1, lon-15, tCol);
+                    // 북반구 내에서 ITCZ를 만나 멈춤
+                    drawWindCurve(25+genShift, lon, 20+genShift, lon-5, targetLat+5, lon-10, targetLat, lon-15, tCol);
+                }
+
+                // 남동 무역풍 (남에서 북으로 올라와 ITCZ에 도달)
+                if(targetLat > 0) {
+                    // 적도를 넘어 북반구의 ITCZ로 향하며 우측으로 꺾임 (남서계절풍)
+                    drawWindCurve(-25+genShift, lon, -10, lon-10, 0, lon-15, targetLat, lon-5, tCol);
+                } else {
+                    // 남반구 내에서 ITCZ를 만나 멈춤
+                    drawWindCurve(-25+genShift, lon, -20+genShift, lon-5, targetLat-5, lon-10, targetLat, lon-15, tCol);
                 }
             });
         }
