@@ -811,22 +811,6 @@
 
         // 앱 시작
         renderList(); redrawClimateMap(); setTimeout(syncPanelsAndSVG, 100);
-        // =====================================================================
-        // 💾 [자동 다운로드 버튼 생성기] 
-        // =====================================================================
-        setTimeout(() => {
-            const dataStr = "const climateData = " + JSON.stringify(window.climateData, null, 4) + ";";
-            const blob = new Blob([dataStr], { type: "text/javascript;charset=utf-8" });
-            const downloadBtn = document.createElement('a');
-            downloadBtn.href = URL.createObjectURL(blob);
-            downloadBtn.download = "final_climate_data.js";
-            downloadBtn.innerText = "💾 완전 무결한 통합 데이터 다운로드 (클릭!)";
-            
-            // 화면 한가운데 눈에 띄게 버튼 스타일링
-            downloadBtn.style.cssText = "position:fixed; top:30px; left:50%; transform:translateX(-50%); z-index:9999; background:#ef4444; color:white; padding:15px 30px; font-size:18px; font-weight:900; border-radius:12px; text-decoration:none; box-shadow:0 10px 25px rgba(0,0,0,0.7); cursor:pointer; border: 2px solid #fff;";
-            
-            document.body.appendChild(downloadBtn);
-        }, 1000); // 렌더링 후 1초 뒤에 버튼 등장
     </script>
 </body>
 </html>
