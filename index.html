@@ -10,17 +10,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
     <style>
+        /* 폰트 주소 강제 적용 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
         * { font-family: 'Pretendard', sans-serif !important; }
         body { background-color: #0f172a; color: #f1f5f9; margin: 0; overflow: hidden; }
         
         .app-container { display: flex; height: 100vh; width: 100vw; }
-        .sidebar { width: 360px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar { width: 350px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
+        .circ-panel { width: 160px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
-        .circ-panel { width: 80px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
-        #svg-arcs { position: absolute; top: 0; left: 80px; right: 80px; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
+        #svg-arcs { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
         .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
         .badge { background-color: #1e293b; border: 1px solid #475569; padding: 6px 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: auto; }
@@ -28,8 +29,10 @@
         .badge-desc { font-size: 9px; color: #94a3b8; margin-top: 2px; }
 
         .vert-marker { position: absolute; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 12px; background: #0f172a; border: 1px solid #475569; transform: translateY(-50%); transition: top 0.1s ease-out; z-index: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.6); pointer-events: auto; }
-        .vert-left { right: -25px; } .vert-right { left: -25px; } 
-        .color-rise { color: #fb923c; } .color-sink { color: #60a5fa; } 
+        .vert-left { right: -25px; } 
+        .vert-right { left: -25px; } 
+        .color-rise { color: #fb923c; } 
+        .color-sink { color: #60a5fa; } 
 
         .climate-engine { position: absolute; top: 20px; right: 20px; z-index: 1000; background: rgba(30, 41, 59, 0.85); padding: 15px 20px; border-radius: 16px; border: 1px solid #475569; backdrop-filter: blur(8px); width: 280px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
@@ -41,9 +44,12 @@
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
             .main-workspace { height: 60%; order: 1; }
-            .circ-panel { width: 50px; }
-            .vert-marker { font-size: 11px; }
-            #svg-arcs { left: 50px; right: 50px; }
+            .circ-panel { width: 70px; }
+            .badge { padding: 3px 6px; }
+            .badge-title { font-size: 9px; }
+            .badge-desc { font-size: 7px; display: none; }
+            .vert-marker { font-size: 8px; padding: 2px 4px; }
+            .vert-left { right: -15px; } .vert-right { left: -15px; }
             #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50; }
             #mobile-settings-btn { display: flex; }
             .climate-engine { display: none; top: 55px; right: 10px; width: 250px; padding: 10px 15px; }
@@ -92,22 +98,24 @@
             <div id="detail-panel" class="p-4 bg-slate-950 border-t border-slate-800 hidden overflow-y-auto custom-scroll" style="max-height: 65vh;">
                 <div class="flex justify-between items-center mb-1">
                     <button id="close-btn" class="md:hidden bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold border border-slate-600">◀ 목록</button>
-                    <h2 id="selected-city" class="text-xl font-bold text-white"></h2>
+                    <h2 id="selected-city" class="text-lg font-bold text-white"></h2>
                 </div>
-                <div id="k-symbol" class="inline-block px-1.5 py-0.5 rounded text-[9px] font-black mb-2"></div>
+                <div id="k-symbol" class="inline-block px-1.5 py-0.5 rounded text-[8px] font-black mb-1"></div>
                 
                 <div class="text-[9px] text-slate-400 mb-2 flex gap-3 bg-slate-800/50 p-1.5 rounded border border-slate-700">
                     <span>🏔️ 고도: <span id="selected-elev" class="text-slate-200 font-bold"></span></span>
                     <span>📚 출처: <span id="selected-source" class="text-slate-200 font-bold truncate max-w-[100px]"></span></span>
                 </div>
 
-                <div class="flex border-b border-slate-700 mt-1 mb-2">
+                <img id="city-image" class="w-full h-24 object-cover rounded my-2 hidden border border-slate-700">
+                
+                <div class="flex border-b border-slate-700 mt-2 mb-2">
                     <button id="tab-natural" class="flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer">자연환경</button>
                     <button id="tab-human" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer">인문환경</button>
                 </div>
                 
-                <div id="content-natural" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900/80 p-2 rounded max-h-24 overflow-y-auto custom-scroll"></div>
-                <div id="content-human" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900/80 p-2 rounded max-h-24 overflow-y-auto custom-scroll hidden"></div>
+                <div id="content-natural" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded max-h-24 overflow-y-auto custom-scroll border border-slate-800"></div>
+                <div id="content-human" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded max-h-24 overflow-y-auto custom-scroll border border-slate-800 hidden"></div>
 
                 <div style="height:140px; width:100%;"><canvas id="climateChart"></canvas></div>
             </div>
@@ -153,27 +161,27 @@
 
     <script>
         // =====================================================================
-        // 🌟 [Plan B] 상세 설명서 (사전) 객체 
-        // 엑셀에서 관리하지 않고 이곳에 텍스트만 작성하여 관리합니다.
+        // 🌟 [백과사전 데이터베이스] 여기에 탭에 들어갈 내용을 텍스트로 적어주세요!
+        // 엑셀의 "도시명"과 정확히 일치해야 데이터가 불러와집니다.
         // =====================================================================
         const cityDetails = {
-            "런던(히스로)": {
-                natural: "영국 잉글랜드 남동부, 템스강 하구에 위치해 있습니다. 난류인 북대서양 해류와 편서풍의 영향으로 고위도(북위 51도)에 위치함에도 겨울이 온화한 서안 해양성 기후(Cfb)가 나타납니다. 연중 강수가 고르게 내리며 안개가 자주 발생합니다.",
-                human: "산업 혁명의 발상지이자 과거 대영제국의 심장부로, 현재는 뉴욕과 함께 세계 금융 및 상업의 중심지 역할을 하고 있습니다. 그리니치 천문대가 위치하여 본초 자오선(경도 0도)의 기준이 되는 역사적인 도시입니다."
-            },
             "싱가포르": {
-                natural: "말레이반도 남단에 위치한 섬나라로, 적도와 매우 가까워(북위 1도) 연중 계절의 변화 없이 일교차가 연교차보다 큰 전형적인 열대 우림 기후(Af)가 나타납니다. 강력한 일사로 인해 매일 오후 스콜(대류성 강우)이 쏟아집니다.",
-                human: "말라카 해협에 위치해 동남아시아의 해상 교통과 물류의 요충지로 중계 무역과 정유 산업이 발달했습니다. 다양한 민족(중국계, 말레이계, 인도계 등)이 공존하며 다문화 사회를 형성하고 있습니다."
+                natural: "말레이반도 남단에 위치한 섬나라로 적도(북위 1도)와 매우 가깝습니다. 연중 고온다습하며 계절풍의 영향을 받지만, 일교차가 연교차보다 큰 전형적인 열대 우림 기후(Af)가 나타납니다. 강력한 일사로 인해 매일 오후 대류성 강우인 스콜이 쏟아집니다.",
+                human: "말라카 해협에 위치하여 동남아시아 해상 교통과 물류의 요충지로 성장했습니다. 중계 무역과 정유, 금융 산업이 발달하였으며, 화교, 말레이계, 인도계 등 다양한 민족과 종교가 공존하는 다문화 국가입니다."
             },
-            "헬완(카이로)": {
-                natural: "나일강 삼각주가 시작되는 지점에 위치해 있습니다. 일 년 내내 아열대 고압대의 영향을 받아 강수량이 극히 적은 사막 기후(BW)가 나타납니다. 구름이 없어 일교차가 매우 큽니다.",
-                human: "나일강의 풍부한 수자원을 바탕으로 고대 이집트 문명이 발상한 곳입니다. 현재 이집트의 수도이자 아프리카 대륙에서 가장 인구가 많은 대도시로, 이슬람 문화와 고대 유적이 혼재된 관광 및 정치의 중심지입니다."
+            "영국(런던(히스로))": {
+                natural: "영국 잉글랜드 남동부 템스강 하구에 위치합니다. 고위도에 위치하지만 북대서양 해류(난류)와 편서풍의 영향으로 겨울이 비교적 온화하며, 연중 비가 고르게 내리는 서안 해양성 기후(Cfb)가 나타납니다. 짙은 안개가 자주 끼는 것으로 유명합니다.",
+                human: "18세기 산업혁명의 발상지이자 대영제국의 수도로 발전했습니다. 현재는 뉴욕과 함께 세계 금융 중심지 역할을 하고 있습니다. 그리니치 천문대가 위치하여 본초 자오선(경도 0도)의 기준점이 되는 역사적인 도시입니다."
+            },
+            "이집트(헬완(카이로))": {
+                natural: "나일강 삼각주가 시작되는 지점에 위치합니다. 연중 아열대 고압대의 영향을 받아 하강 기류가 발생하므로 비가 거의 내리지 않는 사막 기후(BW)가 나타납니다. 구름이 없어 일사량이 풍부하고 일교차가 매우 큽니다.",
+                human: "나일강의 풍부한 수자원을 바탕으로 고대 이집트 문명이 발상한 곳입니다. 피라미드와 스핑크스 등 고대 유적이 밀집해 있으며, 현재 이집트의 수도이자 아프리카 대륙에서 가장 거대한 대도시로 이슬람 문화의 중심지입니다."
             }
-            // 필요한 지역이 있으면 이런 식으로 "도시명": { natural: "...", human: "..." } 계속 추가하시면 됩니다.
+            // 필요한 지역을 계속 추가하세요. 예: "미국(뉴욕)": { natural: "...", human: "..." }
         };
 
         // =====================================================================
-        // [내장형 데이터베이스 107곳] (기존과 동일)
+        // [내장형 CSV 데이터베이스 107곳] 
         // =====================================================================
         const rawCSVData = `
 아프리카,가나(쿠마시),31.3,56.4,86.6,161.6,174.8,171.6,131.9,78.5,168.8,171.4,63.8,34.8,26.9,28,28.1,27.6,26.9,25.8,24.9,24.6,25.3,26,26.8,26.7,Aw,6˚43´N,1˚36´W,286,1992~2020,1991~2019,이과연표 2022
@@ -452,26 +460,27 @@
                     map.flyTo(d.coords, 4, { duration: 1.5 });
                     document.getElementById('detail-panel').classList.remove('hidden');
                     document.getElementById('selected-city').innerText = name;
+                    
                     document.getElementById('k-symbol').innerText = d.symbol;
                     document.getElementById('k-symbol').style.color = col;
+                    
                     document.getElementById('city-image').src = d.image;
                     document.getElementById('city-image').classList.remove('hidden');
                     
                     document.getElementById('selected-elev').innerText = d.elevation + (isNaN(d.elevation)?'':'m');
                     document.getElementById('selected-source').innerText = d.source;
                     
-                    // 🌟 [추가됨] 탭에 백과사전 내용 반영 (없으면 기본 내용)
-                    const natText = cityDetails[name] ? cityDetails[name].natural : d.desc;
-                    const humText = cityDetails[name] ? cityDetails[name].human : "아직 이 지역의 인문환경 데이터가 입력되지 않았습니다.";
-                    document.getElementById('content-natural').innerText = natText;
-                    document.getElementById('content-human').innerText = humText;
+                    // 🌟 [핵심] 사전(cityDetails)에서 데이터를 찾아 탭에 뿌림
+                    const detail = cityDetails[name];
+                    document.getElementById('content-natural').innerText = detail ? detail.natural : d.desc; // 사전에 없으면 엑셀 기본 한 줄 설명 표시
+                    document.getElementById('content-human').innerText = detail ? detail.human : "이 지역의 인문환경 데이터는 아직 업데이트되지 않았습니다. (cityDetails 객체에 내용을 추가해주세요.)";
 
-                    // 탭 초기화 (자연환경 탭을 기본으로 열기)
+                    // 탭 버튼 상태 초기화 (자연환경 탭 활성화)
                     document.getElementById('tab-natural').className = "flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer";
                     document.getElementById('tab-human').className = "flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer";
                     document.getElementById('content-natural').classList.remove('hidden');
                     document.getElementById('content-human').classList.add('hidden');
-
+                    
                     const ctx = document.getElementById('climateChart').getContext('2d');
                     if (myChart) myChart.destroy();
                     myChart = new Chart(ctx, { type: 'bar', data: { labels: [1,2,3,4,5,6,7,8,9,10,11,12], datasets: [{ label: '기온', data: d.temp, type: 'line', borderColor: '#f87171', backgroundColor: '#f87171', yAxisID: 'y1', tension: 0.3, pointRadius: 1.5 }, { label: '강수량', data: d.precip, backgroundColor: col + '88', yAxisID: 'y2', borderRadius: 2 }] }, options: { maintainAspectRatio: false, scales: { y1: { min: -40, max: 40, ticks: {font: {size: 8}} }, y2: { position: 'right', grid: {display: false}, ticks: {font: {size: 8}} }, x: {ticks: {font: {size: 8}}} }, plugins: { legend: { display: false } } } });
@@ -480,7 +489,7 @@
             });
         }
 
-        // 🌟 탭 버튼 이벤트 리스너 추가
+        // 🌟 탭 스위치 로직
         document.getElementById('tab-natural').addEventListener('click', () => {
             document.getElementById('tab-natural').className = "flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer";
             document.getElementById('tab-human').className = "flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer";
