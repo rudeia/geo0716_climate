@@ -162,7 +162,7 @@
 
     <script>
         // =====================================================================
-        // 🌟 [수능 기후 특징 데이터베이스 - 테라로사 수정 및 간대토양 명시] 
+        // 🌟 [수능 기후 특징 데이터베이스] 
         // =====================================================================
         const climateTraits = {
             "Af": {
@@ -322,7 +322,11 @@
                     
                     document.getElementById('content-natural').innerText = d.desc;
 
-                    // 🌟 기후 특징 UI 생성 로직 (위키백과 연동 포함)
+                    // 🌟 구글 검색용 핵심 단어 추출 함수 (이모지, 괄호 등 부가설명 제거)
+                    const getSearchQuery = (str) => {
+                        return str.replace(/^[^a-zA-Z0-9가-힣]+/, '').split('(')[0].trim();
+                    };
+
                     const traitsContainer = document.getElementById('climate-traits-container');
                     
                     let tKey = d.symbol;
@@ -347,27 +351,32 @@
                             </div>
                             
                             <div class="mb-3 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm">
-                                <h3 class="text-[12px] font-black text-orange-400 mb-2 flex items-center gap-1">
-                                    🌱 대표 식생·토양
+                                <h3 class="text-[12px] font-black text-orange-400 mb-2 flex items-center justify-between">
+                                    <span class="flex items-center gap-1">🌱 대표 식생·토양</span>
+                                    <span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span>
                                 </h3>
                                 <div class="flex flex-wrap gap-1.5">
-                                    ${tData.vegSoil.map(vs => `
-                                        <span class="px-2 py-1 bg-slate-700/60 text-yellow-500 text-[10px] font-bold rounded-lg border border-slate-600/50 shadow-sm">${vs}</span>
-                                    `).join('')}
+                                    ${tData.vegSoil.map(vs => {
+                                        const query = getSearchQuery(vs);
+                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-yellow-500 hover:text-yellow-400 text-[10px] font-bold rounded-lg border border-slate-600/50 shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">
+                                            ${vs} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                        </a>`;
+                                    }).join('')}
                                 </div>
                             </div>
                             
                             <div class="mb-2 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm">
                                 <h3 class="text-[12px] font-black text-emerald-400 mb-2 flex items-center justify-between">
                                     <span class="flex items-center gap-1">📝 수능 키워드</span>
-                                    <span class="text-slate-500 text-[9px] font-normal">키워드 클릭 시 위키백과 검색</span>
+                                    <span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span>
                                 </h3>
                                 <div class="flex flex-wrap gap-1.5">
-                                    ${tData.keywords.map(kw => `
-                                        <a href="https://ko.wikipedia.org/w/index.php?search=${encodeURIComponent(kw)}" target="_blank" class="px-2.5 py-1 bg-slate-700/50 hover:bg-slate-600/80 text-emerald-300 hover:text-emerald-200 text-[10px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">
+                                    ${tData.keywords.map(kw => {
+                                        const query = getSearchQuery(kw);
+                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2.5 py-1 bg-slate-700/50 hover:bg-slate-600/80 text-emerald-300 hover:text-emerald-200 text-[10px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">
                                             ${kw} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                        </a>
-                                    `).join('')}
+                                        </a>`;
+                                    }).join('')}
                                 </div>
                             </div>
                         `;
