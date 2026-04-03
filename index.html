@@ -17,17 +17,17 @@
         .app-container { display: flex; height: 100vh; width: 100vw; }
         .sidebar { width: 360px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
-        .circ-panel { width: 80px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
+        .circ-panel { width: 0px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
         #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
         #svg-arcs { position: absolute; top: 0; left: 80px; right: 80px; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
-        .circ-marker { position: absolute; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
+        .circ-marker { position: absolute; display: none; left: 0; right: 0; text-align: center; left: 0; right: 0; text-align: center; transform: translateY(-50%); transition: top 0.1s ease-out; display: flex; flex-direction: column; align-items: center; }
         .badge { background-color: #1e293b; border: 1px solid #475569; padding: 6px 10px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: auto; }
         .badge-title { font-size: 11px; font-weight: 900; color: #f8fafc; }
         .badge-desc { font-size: 9px; color: #94a3b8; margin-top: 2px; }
 
-        .vert-marker { position: absolute; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 12px; background: #0f172a; border: 1px solid #475569; transform: translateY(-50%); transition: top 0.1s ease-out; z-index: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.6); pointer-events: auto; }
+        .vert-marker { position: absolute; display: none; font-size: 10px; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 12px; background: #0f172a; border: 1px solid #475569; transform: translateY(-50%); transition: top 0.1s ease-out; z-index: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.6); pointer-events: auto; }
         .vert-left { right: -25px; } 
         .vert-right { left: -25px; } 
         .color-rise { color: #fb923c; } 
