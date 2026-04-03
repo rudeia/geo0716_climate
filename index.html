@@ -109,10 +109,12 @@
                 <div style="height:140px; width:100%; margin-bottom: 10px;"><canvas id="climateChart"></canvas></div>
 
                 <div class="flex border-b border-slate-700 mt-2 mb-2">
-                    <button id="tab-natural" class="flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer">자세히 보기</button>
+                    <button id="tab-natural" class="flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer">자연환경</button>
+                    <button id="tab-human" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer">인문환경</button>
                 </div>
                 
                 <div id="content-natural" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800"></div>
+                <div id="content-human" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800 hidden"></div>
 
                 <div id="climate-traits-container" class="mt-4 hidden"></div>
 
@@ -162,7 +164,7 @@
 
     <script>
         // =====================================================================
-        // 🌟 [수능 기후 특징 데이터베이스] 
+        // 🌟 [수능 기후 특징 데이터베이스 - 테라로사 수정 및 간대토양 명시] 
         // =====================================================================
         const climateTraits = {
             "Af": {
@@ -320,9 +322,17 @@
                     document.getElementById('selected-elev').innerText = d.elevation + (isNaN(d.elevation)?'':'m');
                     document.getElementById('selected-source').innerText = d.source;
                     
-                    document.getElementById('content-natural').innerText = d.desc;
+                    // 🌟 데이터베이스의 자연환경, 인문환경 속성을 읽어오도록 연결 수정 완료!
+                    document.getElementById('content-natural').innerText = d.natural ? d.natural : (d.desc + "\n\n(상세 자연환경 데이터를 업데이트 중입니다.)");
+                    document.getElementById('content-human').innerText = d.human ? d.human : "(상세 인문환경 데이터를 업데이트 중입니다.)";
 
-                    // 🌟 구글 검색용 핵심 단어 추출 함수 (이모지, 괄호 등 부가설명 제거)
+                    // 탭 버튼 스위치 초기화
+                    document.getElementById('tab-natural').className = "flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer";
+                    document.getElementById('tab-human').className = "flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer";
+                    document.getElementById('content-natural').classList.remove('hidden');
+                    document.getElementById('content-human').classList.add('hidden');
+
+                    // 구글 검색용 핵심 단어 추출 함수
                     const getSearchQuery = (str) => {
                         return str.replace(/^[^a-zA-Z0-9가-힣]+/, '').split('(')[0].trim();
                     };
@@ -336,7 +346,7 @@
                     
                     if (tData) {
                         let html = `
-                            <div class="mb-3 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm">
+                            <div class="mb-3 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm mt-3">
                                 <h3 class="text-[12px] font-black text-blue-400 mb-2 flex items-center gap-1">
                                     🌿 <span>${tData.name} (${d.symbol}) 경관 특징</span>
                                 </h3>
@@ -393,6 +403,20 @@
                 card.onclick = selectAction; marker.on('click', selectAction);
             });
         }
+
+        // 🌟 탭 버튼 스위치 이벤트 다시 활성화
+        document.getElementById('tab-natural').addEventListener('click', () => {
+            document.getElementById('tab-natural').className = "flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer";
+            document.getElementById('tab-human').className = "flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer";
+            document.getElementById('content-natural').classList.remove('hidden');
+            document.getElementById('content-human').classList.add('hidden');
+        });
+        document.getElementById('tab-human').addEventListener('click', () => {
+            document.getElementById('tab-human').className = "flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer";
+            document.getElementById('tab-natural').className = "flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer";
+            document.getElementById('content-human').classList.remove('hidden');
+            document.getElementById('content-natural').classList.add('hidden');
+        });
 
         document.getElementById('search-input').addEventListener('input', renderList);
         document.getElementById('climate-filter').addEventListener('change', renderList);
