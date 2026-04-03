@@ -174,23 +174,32 @@
     <script src="final_climate_data.js"></script>
 
     <script>
-        // --- [기후별 대표 경관 이미지 데이터베이스] ---
+// --- [기후별 대표 경관 이미지 데이터베이스 (교육용 정석 사진)] ---
         const climateImages = {
-            "Af": "https://images.unsplash.com/photo-1546272989-40c92939c6c2?auto=format&fit=crop&w=500&q=80",
-            "Am": "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=500&q=80",
-            "Aw": "https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=500&q=80",
-            "BW": "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&w=500&q=80",
-            "BS": "https://images.unsplash.com/photo-1511993226957-cd166aba52d8?auto=format&fit=crop&w=500&q=80",
-            "Cs": "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=500&q=80",
-            "Cw": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80",
-            "Cfa": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=500&q=80",
-            "Cfb": "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=500&q=80",
-            "Df": "https://images.unsplash.com/photo-1483354483454-4cd359948304?auto=format&fit=crop&w=500&q=80",
-            "Dw": "https://images.unsplash.com/photo-1418985991508-e473a34af900?auto=format&fit=crop&w=500&q=80",
-            "ET": "https://images.unsplash.com/photo-1528255671579-01b9e182ed1d?auto=format&fit=crop&w=500&q=80",
-            "EF": "https://images.unsplash.com/photo-1414490929659-9a12b7e31907?auto=format&fit=crop&w=500&q=80",
-            "H": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80",
-            "AH": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=500&q=80"
+            // [열대 기후]
+            "Af": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Amazon_rainforest.jpg/800px-Amazon_rainforest.jpg", // 아마존 열대우림 (다층 수관)
+            "Am": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Rice_terraces_in_Mu_Cang_Chai%2C_Vietnam.jpg/800px-Rice_terraces_in_Mu_Cang_Chai%2C_Vietnam.jpg", // 동남아시아 벼농사 (계단식 논)
+            "Aw": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Serengeti_National_Park%2C_Tanzania.jpg/800px-Serengeti_National_Park%2C_Tanzania.jpg", // 세렝게티 사바나 (소림장초)
+
+            // [건조 기후]
+            "BW": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Erg_Chebbi_Morocco.jpg/800px-Erg_Chebbi_Morocco.jpg", // 사하라 사막 (모래 사막)
+            "BS": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Mongolian_steppe.jpg/800px-Mongolian_steppe.jpg", // 몽골 스텝 (단초 초원)
+
+            // [온대 기후]
+            "Cs": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Oia_Santorini_Greece.jpg/800px-Oia_Santorini_Greece.jpg", // 지중해성 (산토리니의 하얀 집)
+            "Cw": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Tea_plantation_in_Munnar.jpg/800px-Tea_plantation_in_Munnar.jpg", // 온대겨울건조 (차밭 플랜테이션)
+            "Cfa": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Pampas.jpg/800px-Pampas.jpg", // 온난습윤 (팜파스 초원)
+            "Cfb": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Lanscape_of_the_Yorkshire_Dales.jpg/800px-Lanscape_of_the_Yorkshire_Dales.jpg", // 서안해양성 (유럽의 푸른 목초지/낙농업)
+
+            // [냉대 기후]
+            "Df": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Taiga.png/800px-Taiga.png", // 냉대습윤 (타이가 침엽수림)
+            "Dw": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Siberian_Taiga_in_Winter.jpg/800px-Siberian_Taiga_in_Winter.jpg", // 냉대겨울건조 (눈 덮인 시베리아 타이가)
+
+            // [한대 및 고산 기후]
+            "ET": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Tundra_in_Siberia.jpg/800px-Tundra_in_Siberia.jpg", // 툰드라 (이끼와 영구동토층 활동층)
+            "EF": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Antarctica_6400.jpg/800px-Antarctica_6400.jpg", // 빙설 (남극의 빙하)
+            "H": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Machu_Picchu%2C_Peru.jpg/800px-Machu_Picchu%2C_Peru.jpg", // 고산 (안데스 산맥 마추픽추)
+            "AH": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Machu_Picchu%2C_Peru.jpg/800px-Machu_Picchu%2C_Peru.jpg" // 고산 동일
         };
 
         const climateTraits = {
