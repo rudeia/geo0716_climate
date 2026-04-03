@@ -457,7 +457,7 @@
         // --- [대기대순환 시각화 엔진] ---
         let climateLayerGrp = L.layerGroup().addTo(map);
         let currentMonth = 1;
-        let isEngineActive = true; 
+        let isEngineActive = false; // 시작 시 꺼짐
 
         const vertData = [
             { lat: 90, title: "극고압대", desc: "찬 공기·하강", type: "sink", symbol: "↓", text: "하강" },
@@ -615,9 +615,43 @@
             else { climateLayerGrp.clearLayers(); }
             setTimeout(() => map.invalidateSize(), 300);
         });
-
+        
         // 앱 시작
-        renderList(); redrawClimateMap(); setTimeout(syncPanelsAndSVG, 100);
+        // --- [앱 시작 및 초기화 로직] ---
+
+// 1. 리스트 렌더링
+renderList(); 
+
+// 2. 대기대순환 패널 초기화 (생성 후 즉시 상태 반영)
+initPanels(); 
+
+// 3. 초기 UI 상태 동기화 함수
+function syncInitialUI() {
+    const toggleInput = document.getElementById('panel-toggle');
+    toggleInput.checked = isEngineActive; // 변수 값에 맞춰 체크박스 설정
+
+    // 엔진이 꺼져있으면 모든 관련 요소 숨김
+    if (!isEngineActive) {
+        document.querySelectorAll('.circ-panel').forEach(p => p.style.width = '0px');
+        document.querySelectorAll('.circ-marker, .vert-marker').forEach(m => m.style.display = 'none');
+        document.getElementById('svg-arcs').style.opacity = '0';
+        climateLayerGrp.clearLayers();
+    } else {
+        // 엔진이 켜져있으면 활성화 (기본값이 false이므로 초기 실행 시엔 작동 안 함)
+        const panelWidth = window.innerWidth <= 768 ? '60px' : '160px';
+        document.querySelectorAll('.circ-panel').forEach(p => p.style.width = panelWidth);
+        document.querySelectorAll('.circ-marker, .vert-marker').forEach(m => m.style.display = 'flex');
+        document.getElementById('svg-arcs').style.opacity = '1';
+        redrawClimateMap();
+    }
+    map.invalidateSize();
+}
+
+// 4. 즉시 실행하여 잔상 제거
+syncInitialUI();
+
+// 5. 지도 이동 시 동기화 (엔진이 켜져있을 때만 작동하게 내부 로직 보호됨)
+setTimeout(syncPanelsAndSVG, 100);
     </script>
 </body>
 </html>
