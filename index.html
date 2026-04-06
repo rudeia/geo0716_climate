@@ -14,12 +14,13 @@
         * { font-family: 'Pretendard', sans-serif !important; }
         body { background-color: #0f172a; color: #f1f5f9; margin: 0; overflow: hidden; }
         
-        .app-container { display: flex; height: 100vh; width: 100vw; }
-        .sidebar { width: 360px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; }
+        /* 모바일 브라우저 주소창 고려 100dvh 적용 */
+        .app-container { display: flex; height: 100vh; height: 100dvh; width: 100vw; }
+        .sidebar { width: 360px; background: #0f172a; border-right: 1px solid #1e293b; z-index: 1000; display: flex; flex-direction: column; flex-shrink: 0; position: relative; }
         .main-workspace { flex: 1; display: flex; background-color: #1e293b; position: relative; }
         .circ-panel { width: 0px; background-color: #0f172a; position: relative; z-index: 500; border-left: 1px solid #334155; border-right: 1px solid #334155; transition: width 0.3s; pointer-events: none; }
         
-        #map { flex: 1; height: 100%; z-index: 1; background-color: #1e293b; }
+        #map { flex: 1; height: 100%; width: 100%; z-index: 1; background-color: #1e293b; }
         #svg-arcs { position: absolute; top: 0; left: 80px; right: 80px; height: 100%; z-index: 400; pointer-events: none; transition: opacity 0.3s; }
 
         .circ-marker { 
@@ -41,28 +42,33 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
 
-        /* 구글 지도 다크모드 반전 필터 추가 */
         .dark-map-layer { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); }
 
+        /* 스마트폰 맞춤형 UI 최적화 */
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
-            .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
-            .main-workspace { height: 60%; order: 1; overflow: hidden; } 
+            .main-workspace { height: 45vh; width: 100%; flex: none; order: 1; } 
+            .sidebar { height: 55vh; width: 100%; flex: 1; order: 2; border-right: none; border-top: 1px solid #1e293b; }
+            
             .circ-panel { position: absolute; top: 0; height: 100%; width: 0; background: rgba(15, 23, 42, 0.7); border: none; }
             #circ-left { left: 0; }
             #circ-right { right: 0; }
             #svg-arcs { left: 0; right: 0; width: 100%; }
-            #detail-panel { position: fixed; bottom: 0; left: 0; width: 100%; height: 65vh; z-index: 5000; background: #0f172a; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+            
+            /* 디테일 패널이 리스트 부분(하단)만 덮도록 수정하여 지도는 항상 보이게 함 */
+            #detail-panel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; max-height: 100%; z-index: 5000; background: #0f172a; border-radius: 0; box-shadow: none; border-top: none; }
+            
             #mobile-settings-btn { display: flex; }
-            .climate-engine { display: none; top: 55px; right: 10px; width: 250px; padding: 10px 15px; }
+            .climate-engine { display: none; top: 10px; right: 10px; width: 240px; padding: 10px 15px; }
             .climate-engine.show { display: block; }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <div class="sidebar shadow-2xl flex flex-col h-full">
-            <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center">
+        
+        <div class="sidebar shadow-2xl flex flex-col">
+            <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex justify-between items-center shrink-0">
                 <div>
                     <h1 class="text-base font-black text-white italic uppercase">쾨펜의 기후 구분 분석 - 안좌고</h1>
                     <p class="text-slate-500 text-[10px] mt-0.5 font-bold">기후 특징 분석하기</p>
@@ -72,7 +78,7 @@
                 </button>
             </div>
 
-            <div class="px-3 py-2 bg-slate-900 border-b border-slate-800 space-y-2">
+            <div class="px-3 py-2 bg-slate-900 border-b border-slate-800 space-y-2 shrink-0">
                 <div class="relative">
                     <input type="text" id="search-input" placeholder="도시명 검색..." class="w-full bg-slate-800 text-xs text-white pl-8 pr-3 py-1.5 rounded-lg border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500">
                     <span class="absolute left-2.5 top-1.5 text-slate-500 text-sm">🔍</span>
@@ -106,37 +112,39 @@
 
             <div id="city-list" class="flex-1 overflow-y-auto p-3 space-y-1.5 bg-slate-900/20 custom-scroll"></div>
 
-            <div id="detail-panel" class="p-4 bg-slate-950 border-t border-slate-800 hidden overflow-y-auto custom-scroll" style="max-height: 65vh;">
-                <div class="flex justify-between items-center mb-1">
-                    <button id="close-btn" class="md:hidden bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold border border-slate-600">◀ 목록</button>
+            <div id="detail-panel" class="p-4 bg-slate-950 border-t border-slate-800 hidden overflow-y-auto custom-scroll flex-col">
+                <div class="flex justify-between items-center mb-1 shrink-0">
+                    <button id="close-btn" class="md:hidden bg-slate-800 text-white text-[10px] px-2 py-1 rounded font-bold border border-slate-600 mb-1">◀ 지도로 돌아가기</button>
                     <h2 id="selected-city" class="text-lg font-bold text-white"></h2>
                     <span id="exam-freq" class="text-yellow-400 text-[10px] font-black tracking-widest"></span>
                 </div>
-                <div id="k-symbol" class="inline-block px-1.5 py-0.5 rounded text-[8px] font-black mb-1"></div>
+                <div id="k-symbol" class="inline-block px-1.5 py-0.5 rounded text-[8px] font-black mb-1 shrink-0"></div>
                 
-                <div class="text-[9px] text-slate-400 mb-2 flex flex-wrap gap-2 bg-slate-800/50 p-1.5 rounded border border-slate-700">
+                <div class="text-[9px] text-slate-400 mb-2 flex flex-wrap gap-2 bg-slate-800/50 p-1.5 rounded border border-slate-700 shrink-0">
                     <span>📍 위치: <span id="selected-coords" class="text-slate-200 font-bold"></span></span>
                     <span>🏔️ 고도: <span id="selected-elev" class="text-slate-200 font-bold"></span></span>
                     <span>📚 출처: <span id="selected-source" class="text-slate-200 font-bold truncate max-w-[80px] inline-block align-bottom"></span></span>
                     <span id="history-container" class="hidden text-yellow-500 font-bold ml-1">📝 기출: <span id="selected-history"></span></span>
                 </div>
 
-                <img id="city-image" class="w-full h-36 object-cover rounded-xl mt-1 mb-3 hidden border border-slate-700 shadow-md">
+                <img id="city-image" class="w-full h-36 object-cover rounded-xl mt-1 mb-3 hidden border border-slate-700 shadow-md shrink-0">
 
-                <div style="height:140px; width:100%; margin-bottom: 10px;"><canvas id="climateChart"></canvas></div>
+                <div style="height:160px; width:100%; margin-bottom: 10px;" class="shrink-0">
+                    <canvas id="climateChart"></canvas>
+                </div>
 
-                <div class="flex border-b border-slate-700 mt-2 mb-2">
+                <div class="flex border-b border-slate-700 mt-2 mb-2 shrink-0">
                     <button id="tab-natural" class="flex-1 py-1.5 text-[11px] font-bold text-orange-400 border-b-2 border-orange-400 transition cursor-pointer">자연환경</button>
                     <button id="tab-human" class="flex-1 py-1.5 text-[11px] font-bold text-slate-500 border-b-2 border-transparent transition cursor-pointer">인문환경</button>
                 </div>
                 
-                <div id="content-natural" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800"></div>
-                <div id="content-human" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800 hidden"></div>
+                <div id="content-natural" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800 shrink-0"></div>
+                <div id="content-human" class="text-[11px] text-slate-300 leading-relaxed mb-3 bg-slate-900 p-2.5 rounded border border-slate-800 hidden shrink-0"></div>
 
-                <div id="climate-traits-container" class="mt-4 hidden"></div>
+                <div id="climate-traits-container" class="mt-2 shrink-0 pb-4"></div>
             </div>
 
-            <div class="py-3 px-4 bg-slate-950 border-t border-slate-800 shrink-0 z-50">
+            <div id="footer-panel" class="py-3 px-4 bg-slate-950 border-t border-slate-800 shrink-0 z-50">
                 <div class="mb-2 text-[9px] text-slate-400 space-y-1 leading-tight">
                     <p class="font-bold text-slate-300 mb-1">📊 자료 출처</p>
                     <p>• 기후 구분 그래프 : 산남고 이성훈 선생님 (ming0987@naver.com)</p>
@@ -146,14 +154,13 @@
                     안좌고등학교 지리과 © 2026 Anjwa High School.<br class="md:hidden"> All rights reserved.
                 </p>
             </div>
-
         </div>
         
         <div class="main-workspace">
             <div id="circ-left" class="circ-panel"></div>
 
             <div id="map" class="relative">
-                <button id="mobile-settings-btn" class="hidden absolute top-4 right-4 z-[2000] bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold border border-slate-600 shadow-lg items-center gap-1 transition">
+                <button id="mobile-settings-btn" class="hidden absolute top-3 right-3 z-[2000] bg-slate-800 hover:bg-slate-700 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold border border-slate-600 shadow-lg items-center gap-1 transition">
                     ⚙️ 기후 설정
                 </button>
 
@@ -163,9 +170,11 @@
                         <span id="month-display" class="text-blue-400 font-bold text-base">1월</span>
                     </div>
                     <input type="range" id="month-slider" min="1" max="12" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    
                     <div class="flex justify-between text-[9px] text-slate-400 mt-2 font-bold mb-3 px-1">
-                         <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
+                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span>
                     </div>
+
                     <div class="border-t border-slate-700 pt-3 flex items-center justify-between">
                         <span class="text-[10px] text-slate-400 font-bold">순환 모식도 (ON/OFF)</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -190,7 +199,6 @@
     <script src="final_climate_data.js"></script>
 
     <script>
-        // --- [기후별 대표 경관 이미지 데이터베이스] ---
         const climateImages = {
             "Af": "https://images.unsplash.com/photo-1546272989-40c92939c6c2?auto=format&fit=crop&w=800&q=80", 
             "Am": "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=800&q=80", 
@@ -215,14 +223,14 @@
             "Aw": { name: "사바나 기후", features: ["건기(아열대 고압대)와 우기(적도 수렴대)의 뚜렷한 교대", "키가 큰 풀과 나무가 드문드문 분포하는 소림장초(疏林長草) 경관", "야생 동물의 서식지로 적합하여 사파리 관광 산업 발달", "풀, 흙, 동물 가죽을 이용한 이동식 가옥 및 유목, 플랜테이션(커피) 발달"], vegSoil: ["🌱 긴 풀(장초)과 소림", "🌱 라테라이트 (열대 지역 전반의 붉은 척박토)"], keywords: ["소림장초", "사파리 관광", "동물 가죽 가옥", "커피 플랜테이션"] },
             "BW": { name: "사막 기후", features: ["연 강수량 250mm 미만이며, 기온의 일교차가 연교차보다 매우 큼", "외래 하천 주변이나 오아시스에서 밀, 대추야자 관개 농업 발달", "햇볕과 모래바람을 막기 위해 헐렁하게 온몸을 감싸는 의복 착용", "흙벽돌을 활용한 평평한 지붕, 작은 창문과 두꺼운 벽이 특징인 가옥"], vegSoil: ["🌵 선인장/다육 식물", "🏜️ 사막토 (염분 집적)", "❌ 식생 거의 없음"], keywords: ["일교차 최대", "오아시스/외래하천", "평지붕 흙벽돌집", "온몸을 감싸는 옷"] },
             "BS": { name: "스텝 기후", features: ["연 강수량 250~500mm로 짧은 우기 동안 짧은 풀이 자라 초원 형성", "양, 염소, 낙타 등을 기르는 유목 및 천막 모양의 이동식 가옥(게르, 유르트) 발달", "토양이 비옥한 구역에서는 밀, 목화 등의 대규모 기업적 농업 발달"], vegSoil: ["🌱 단초(짧은 풀)", "🌱 체르노젬 (우크라이나·중앙아시아 등 스텝 지역의 비옥한 흑토)"], keywords: ["유목/기업적 농업", "단초 초원", "이동식 가옥(게르)", "비옥한 흑토"] },
-            "Cs": { name: "지중해성 기후", features: ["여름철 아열대 고압대의 영향으로 고온 건조하여 수목 농업(올리브, 포도 등) 발달", "겨울철 편서풍 및 전선대 영향으로 온난 습윤하여 곡물 농업(밀, 보리) 발달", "강한 햇빛과 열기 차단을 위해 건물의 외벽을 흰색으로 칠하고 좁은 골목 형성"], vegSoil: ["🌳 경엽수 (작고 두꺼운 잎)", "🌱 테라로사 (기후보다는 암석의 영향을 크게 받는 석회암 풍화 간대토양이나, 지중해 연안에 널리 분포함)", "🍇 올리브/포도"], keywords: ["여름 수목농업", "겨울 곡물농업", "하얀 외벽/좁은 골목", "테라로사"] },
+            "Cs": { name: "지중해성 기후", features: ["여름철 아열대 고압대의 영향으로 고온 건조하여 수목 농업(올리브, 포도 등) 발달", "겨울철 편서풍 및 전선대 영향으로 온난 습윤하여 곡물 농업(밀, 보리) 발달", "강한 햇빛과 열기 차단을 위해 건물의 외벽을 흰색으로 칠하고 좁은 골목 형성"], vegSoil: ["🌳 경엽수 (작고 두꺼운 잎)", "🌱 테라로사 (석회암 풍화 간대토양, 지중해 연안 널리 분포)"], keywords: ["여름 수목농업", "겨울 곡물농업", "하얀 외벽/좁은 골목", "테라로사"] },
             "Cw": { name: "온대 겨울 건조 기후", features: ["계절풍의 영향으로 기온의 연교차 및 강수량 계절 편차가 큼", "여름철 기온이 높고 강수량이 풍부하여 동아시아와 동남아시아에서 벼농사 발달", "강수 편차 극복을 위한 다목적 댐 건설 및 겨울철 온화한 지역에서 차(Tea) 재배 활발", "혼합림이 분포하며 겨울이 따뜻한 곳은 동백 등의 상록 활엽수 출현"], vegSoil: ["🌳 혼합림/조엽수림", "🌱 적황색토"], keywords: ["계절풍", "여름 고온다우", "벼농사/차 재배", "다목적 댐"] },
-            "Cfa": { name: "온난 습윤 기후", features: ["건기가 뚜렷하지 않고 연중 습윤하며, 여름철에 무덥고 강수량이 많음", "북아메리카 남동부(목화, 콩 등) 및 아시아 대륙 동안에 주로 분포", "남아메리카 남동부 지역에서는 대규모 기업적 목축업과 밀 농사 활발"], vegSoil: ["🌳 혼합림", "🌱 적황색토", "🌱 팜파스·프레리 토양 (남/북미 대평원 지대의 비옥한 흑색토)"], keywords: ["연중 습윤", "대륙 동안", "기업적 목축업", "목화/콩 재배"] },
+            "Cfa": { name: "온난 습윤 기후", features: ["건기가 뚜렷하지 않고 연중 습윤하며, 여름철에 무덥고 강수량이 많음", "북아메리카 남동부(목화, 콩 등) 및 아시아 대륙 동안에 주로 분포", "남아메리카 남동부 지역에서는 대규모 기업적 목축업과 밀 농사 활발"], vegSoil: ["🌳 혼합림", "🌱 적황색토", "🌱 팜파스·프레리 토양 (대평원 비옥한 흑색토)"], keywords: ["연중 습윤", "대륙 동안", "기업적 목축업", "목화/콩 재배"] },
             "Cfb": { name: "서안 해양성 기후", features: ["연중 바다에서 불어오는 편서풍의 영향으로 여름이 서늘하고 겨울이 온화", "일년 내내 강수가 고른 편이라 하천 유량 변동이 적어 수운 교통 발달", "일조량이 적어 맑은 날 일광욕을 즐기며 잦은 비로 비옷과 우산을 자주 챙김", "서늘한 여름을 활용해 밀, 보리와 가축(소, 양)을 함께 기르는 혼합 농업 및 낙농업 발달"], vegSoil: ["🌳 낙엽활엽수림", "🌱 갈색 삼림토"], keywords: ["편서풍/난류", "강수 고름/수운 교통", "혼합 농업/낙농업", "일광욕"] },
-            "Df": { name: "냉대 습윤 기후", features: ["최난월 10도 이상, 기온의 연교차가 크고 강수량이 연중 고른 편임", "타이가(Taiga)라 불리는 광범위한 침엽수림 지대를 바탕으로 임업 발달", "주변에서 쉽게 구할 수 있는 목재를 이용한 통나무(귀틀집) 가옥 구조 발달", "밭농사(밀, 보리, 귀리, 감자) 및 빙하 지형을 활용한 관광·수력 발전 활발"], vegSoil: ["🌲 타이가(침엽수림)", "🌱 포드졸 (냉대 침엽수림 지대에 분포하는 회백색 산성 토양)"], keywords: ["기온 연교차 큼", "타이가(침엽수)", "임업/통나무집", "포드졸"] },
-            "Dw": { name: "냉대 겨울 건조 기후", features: ["시베리아 고기압의 영향으로 겨울 기온이 매우 낮고 극도로 한랭 건조함", "강수가 주로 여름에 집중되며, 유라시아 대륙 동안(동북아, 시베리아 동부)에 분포", "세계에서 기온 연교차가 가장 큰 지역들을 포함하며 타이가 및 전통 가옥 발달"], vegSoil: ["🌲 타이가(침엽수림)", "🌱 포드졸 (냉대 침엽수림 지대에 분포하는 회백색 산성 토양)"], keywords: ["겨울 극건조", "연교차 최대 지역", "시베리아 고기압", "타이가/통나무집"] },
-            "ET": { name: "툰드라 기후", features: ["최난월 평균 0~10도로 기온 연교차가 크며, 짧은 여름 동안 지표면이 융해됨", "활동층이 녹아 건축물이 붕괴되는 것을 막기 위한 고상 가옥 발달", "순록 유목, 이동식 천막집 발달 및 고래/바다표범 수렵, 어업 활동", "오로라, 빙하, 백야 현상 등을 체험하는 관광 산업 및 자원 확보 활발"], vegSoil: ["🌿 지의류(이끼), 선태류", "🌱 툰드라 토양 (영구 동토층 및 활동층, 구조토 발달)"], keywords: ["영구 동토층/활동층", "순록 유목", "고상 가옥", "오로라/백야"] },
-            "EF": { name: "빙설 기후", features: ["최난월 평균 기온 0도 미만으로, 지표면이 연중 두꺼운 눈과 얼음(빙상)으로 덮임", "식생이 자라기 불리하여 인간 거주에 부적합하며 남극 및 그린란드에 분포", "현재는 과학 연구 목적의 기지 건설 및 지하자원 확보, 군사적 목적의 관심 증대"], vegSoil: ["❌ 식생 없음", "❄️ 눈과 얼음(두꺼운 빙하/빙상)"], keywords: ["최난월 0도 미만", "연중 빙설", "식생 불모지", "과학/군사 기지"] },
+            "Df": { name: "냉대 습윤 기후", features: ["최난월 10도 이상, 기온의 연교차가 크고 강수량이 연중 고른 편임", "타이가(Taiga)라 불리는 광범위한 침엽수림 지대를 바탕으로 임업 발달", "주변에서 쉽게 구할 수 있는 목재를 이용한 통나무(귀틀집) 가옥 구조 발달", "밭농사(밀, 보리, 귀리, 감자) 및 빙하 지형을 활용한 관광·수력 발전 활발"], vegSoil: ["🌲 타이가(침엽수림)", "🌱 포드졸 (회백색 산성 토양)"], keywords: ["기온 연교차 큼", "타이가(침엽수)", "임업/통나무집", "포드졸"] },
+            "Dw": { name: "냉대 겨울 건조 기후", features: ["시베리아 고기압의 영향으로 겨울 기온이 매우 낮고 극도로 한랭 건조함", "강수가 주로 여름에 집중되며, 유라시아 대륙 동안(동북아, 시베리아 동부)에 분포", "세계에서 기온 연교차가 가장 큰 지역들을 포함하며 타이가 및 전통 가옥 발달"], vegSoil: ["🌲 타이가(침엽수림)", "🌱 포드졸 (회백색 산성 토양)"], keywords: ["겨울 극건조", "연교차 최대 지역", "시베리아 고기압", "타이가/통나무집"] },
+            "ET": { name: "툰드라 기후", features: ["최난월 평균 0~10도로 기온 연교차가 크며, 짧은 여름 동안 지표면이 융해됨", "활동층이 녹아 건축물이 붕괴되는 것을 막기 위한 고상 가옥 발달", "순록 유목, 이동식 천막집 발달 및 고래/바다표범 수렵, 어업 활동", "오로라, 빙하, 백야 현상 등을 체험하는 관광 산업 및 자원 확보 활발"], vegSoil: ["🌿 지의류(이끼), 선태류", "🌱 툰드라 토양 (영구동토층/구조토)"], keywords: ["영구 동토층/활동층", "순록 유목", "고상 가옥", "오로라/백야"] },
+            "EF": { name: "빙설 기후", features: ["최난월 평균 기온 0도 미만으로, 지표면이 연중 두꺼운 눈과 얼음(빙상)으로 덮임", "식생이 자라기 불리하여 인간 거주에 부적합하며 남극 및 그린란드에 분포", "현재는 과학 연구 목적의 기지 건설 및 지하자원 확보, 군사적 목적의 관심 증대"], vegSoil: ["❌ 식생 없음", "❄️ 눈과 얼음(두꺼운 빙상)"], keywords: ["최난월 0도 미만", "연중 빙설", "식생 불모지", "과학/군사 기지"] },
             "H": { name: "고산 기후", features: ["해발 고도가 높은 열대 지역에서 일년 내내 봄과 같은 온화한 기후(상춘 기후) 발생", "인간 거주에 유리해 고산 도시가 발달하며, 기온의 일교차는 크고 연교차는 작음", "햇빛이 강한 낮에는 챙이 넓은 모자를, 밤의 추위에는 판초(Poncho) 착용함", "안데스 산지 등에서는 서늘함을 이용해 밀, 보리, 감자, 옥수수 재배 및 라마/알파카 유목"], vegSoil: ["🏔️ 고도에 따른 수직적 식생대 분포"], keywords: ["상춘 기후", "고산 도시", "챙 넓은 모자/판초", "일교차 큼/연교차 작음"] }
         };
         climateTraits["AH"] = climateTraits["H"];
@@ -236,7 +244,6 @@
 
         const map = L.map('map', { zoomControl: false, minZoom: 2, maxBounds: [[-90, -180], [90, 180]] }).setView([10, 20], 2);
         
-        // 구글 지도 (다크 모드 적용) 교체 부분
         L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', {
             className: 'dark-map-layer',
             maxZoom: 18,
@@ -290,27 +297,24 @@
                 const selectAction = () => {
                     map.flyTo(d.coords, 4, { duration: 1.5 });
                     document.getElementById('detail-panel').classList.remove('hidden');
+                    // 패널 열 때 푸터를 숨기고 닫을 때 나타나도록 처리
+                    document.getElementById('footer-panel').classList.add('hidden');
+
                     document.getElementById('selected-city').innerText = name;
                     document.getElementById('k-symbol').innerText = d.symbol;
                     document.getElementById('k-symbol').style.color = col;
                     
-                    // --- [위경도 텍스트 변환 및 출력] ---
-                    const lat = d.coords[0];
-                    const lng = d.coords[1];
+                    const lat = d.coords[0]; const lng = d.coords[1];
                     const latStr = Math.abs(lat).toFixed(1) + '°' + (lat >= 0 ? 'N' : 'S');
                     const lngStr = Math.abs(lng).toFixed(1) + '°' + (lng >= 0 ? 'E' : 'W');
                     document.getElementById('selected-coords').innerText = `${latStr}, ${lngStr}`;
-                    // ------------------------------------
 
                     const cityImgTag = document.getElementById('city-image');
                     const symbol = d.symbol;
-                    const finalImgUrl = climateImages[symbol] || 
-                                        climateImages[symbol.substring(0, 2)] || 
-                                        climateImages[symbol.substring(0, 1)];
+                    const finalImgUrl = climateImages[symbol] || climateImages[symbol.substring(0, 2)] || climateImages[symbol.substring(0, 1)];
 
                     if (finalImgUrl) {
-                        cityImgTag.src = finalImgUrl;
-                        cityImgTag.classList.remove('hidden');
+                        cityImgTag.src = finalImgUrl; cityImgTag.classList.remove('hidden');
                     } else {
                         cityImgTag.classList.add('hidden');
                     }
@@ -337,7 +341,6 @@
                     document.getElementById('content-human').classList.add('hidden');
 
                     const getSearchQuery = (str) => { return str.replace(/^[^a-zA-Z0-9가-힣]+/, '').split('(')[0].trim(); };
-
                     const traitsContainer = document.getElementById('climate-traits-container');
                     let tKey = d.symbol;
                     if (!climateTraits[tKey]) tKey = d.symbol.substring(0, 2); 
@@ -346,58 +349,65 @@
                     if (tData) {
                         let html = `
                             <div class="mb-3 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm mt-3">
-                                <h3 class="text-[12px] font-black text-blue-400 mb-2 flex items-center gap-1">
-                                    🌿 <span>${tData.name} (${d.symbol}) 경관 특징</span>
-                                </h3>
+                                <h3 class="text-[12px] font-black text-blue-400 mb-2 flex items-center gap-1">🌿 <span>${tData.name} (${d.symbol}) 경관 특징</span></h3>
                                 <ul class="text-[11px] text-slate-300 space-y-2 divide-y divide-slate-700/50">
-                                    ${tData.features.map(f => `
-                                        <li class="pt-2 first:pt-0 flex gap-1.5 items-start">
-                                            <span class="text-blue-500 mt-0.5 text-[10px]">✦</span> 
-                                            <span class="leading-snug">${f}</span>
-                                        </li>
-                                    `).join('')}
+                                    ${tData.features.map(f => `<li class="pt-2 first:pt-0 flex gap-1.5 items-start"><span class="text-blue-500 mt-0.5 text-[10px]">✦</span><span class="leading-snug">${f}</span></li>`).join('')}
                                 </ul>
                             </div>
-                            
                             <div class="mb-3 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm">
-                                <h3 class="text-[12px] font-black text-orange-400 mb-2 flex items-center justify-between">
-                                    <span class="flex items-center gap-1">🌱 대표 식생·토양</span>
-                                    <span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span>
-                                </h3>
+                                <h3 class="text-[12px] font-black text-orange-400 mb-2 flex items-center justify-between"><span class="flex items-center gap-1">🌱 대표 식생·토양</span><span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span></h3>
                                 <div class="flex flex-wrap gap-1.5">
                                     ${tData.vegSoil.map(vs => {
                                         const query = getSearchQuery(vs);
-                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-yellow-500 hover:text-yellow-400 text-[10px] font-bold rounded-lg border border-slate-600/50 shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">
-                                            ${vs} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                        </a>`;
+                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2 py-1 bg-slate-700/60 hover:bg-slate-600/80 text-yellow-500 hover:text-yellow-400 text-[10px] font-bold rounded-lg border border-slate-600/50 shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">${vs} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`;
                                     }).join('')}
                                 </div>
                             </div>
-                            
                             <div class="mb-2 border border-slate-700/60 bg-slate-800/40 rounded-xl p-3 shadow-sm">
-                                <h3 class="text-[12px] font-black text-emerald-400 mb-2 flex items-center justify-between">
-                                    <span class="flex items-center gap-1">📝 키워드</span>
-                                    <span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span>
-                                </h3>
+                                <h3 class="text-[12px] font-black text-emerald-400 mb-2 flex items-center justify-between"><span class="flex items-center gap-1">📝 키워드</span><span class="text-slate-500 text-[9px] font-normal">클릭 시 구글 검색</span></h3>
                                 <div class="flex flex-wrap gap-1.5">
                                     ${tData.keywords.map(kw => {
                                         const query = getSearchQuery(kw);
-                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2.5 py-1 bg-slate-700/50 hover:bg-slate-600/80 text-emerald-300 hover:text-emerald-200 text-[10px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">
-                                            ${kw} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                        </a>`;
+                                        return `<a href="https://www.google.com/search?q=${encodeURIComponent(query)}" target="_blank" class="px-2.5 py-1 bg-slate-700/50 hover:bg-slate-600/80 text-emerald-300 hover:text-emerald-200 text-[10px] font-bold rounded-lg shadow-sm transition-colors cursor-pointer decoration-transparent flex items-center gap-1">${kw} <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg></a>`;
                                     }).join('')}
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                         traitsContainer.innerHTML = html;
                         traitsContainer.classList.remove('hidden');
-                    } else {
-                        traitsContainer.classList.add('hidden');
-                    }
+                    } else { traitsContainer.classList.add('hidden'); }
 
+                    /* === 기후 차트 축 고정 및 범례 추가 === */
                     const ctx = document.getElementById('climateChart').getContext('2d');
                     if (myChart) myChart.destroy();
-                    myChart = new Chart(ctx, { type: 'bar', data: { labels: [1,2,3,4,5,6,7,8,9,10,11,12], datasets: [{ label: '기온', data: d.temp, type: 'line', borderColor: '#f87171', backgroundColor: '#f87171', yAxisID: 'y1', tension: 0.3, pointRadius: 1.5 }, { label: '강수량', data: d.precip, backgroundColor: col + '88', yAxisID: 'y2', borderRadius: 2 }] }, options: { maintainAspectRatio: false, scales: { y1: { min: -40, max: 40, ticks: {font: {size: 8}} }, y2: { position: 'right', grid: {display: false}, ticks: {font: {size: 8}} }, x: {ticks: {font: {size: 8}}} }, plugins: { legend: { display: false } } } });
+                    myChart = new Chart(ctx, { 
+                        type: 'bar', 
+                        data: { 
+                            labels: [1,2,3,4,5,6,7,8,9,10,11,12], 
+                            datasets: [
+                                { label: '기온 (°C)', data: d.temp, type: 'line', borderColor: '#f87171', backgroundColor: '#f87171', yAxisID: 'y1', tension: 0.3, pointRadius: 1.5, borderWidth: 2 }, 
+                                { label: '강수량 (mm)', data: d.precip, backgroundColor: col + 'AA', yAxisID: 'y2', borderRadius: 2 }
+                            ] 
+                        }, 
+                        options: { 
+                            maintainAspectRatio: false, 
+                            scales: { 
+                                // 온도: -40도 ~ 40도 (고정)
+                                y1: { min: -40, max: 40, ticks: { font: {size: 8}, color: '#94a3b8' }, border: { dash: [4, 4] }, grid: { color: '#334155' } }, 
+                                // 강수량: 0mm ~ 500mm (고정) - 지역별 비교가 용이해짐
+                                y2: { min: 0, max: 500, position: 'right', grid: {display: false}, ticks: { font: {size: 8}, color: '#94a3b8' } }, 
+                                x: { ticks: { font: {size: 8}, color: '#94a3b8' }, grid: { display: false } } 
+                            }, 
+                            plugins: { 
+                                // 범례 표시 ON
+                                legend: { 
+                                    display: true, 
+                                    position: 'top',
+                                    align: 'end',
+                                    labels: { color: '#cbd5e1', font: { size: 9 }, boxWidth: 10, boxHeight: 10, usePointStyle: true, pointStyle: 'rectRounded' }
+                                } 
+                            } 
+                        } 
+                    });
                 };
                 card.onclick = selectAction; marker.on('click', selectAction);
             });
@@ -420,14 +430,20 @@
         document.getElementById('climate-filter').addEventListener('change', renderList);
         document.getElementById('exam-filter').addEventListener('change', renderList);
         document.getElementById('sort-select').addEventListener('change', renderList);
-        document.getElementById('close-btn').addEventListener('click', () => { document.getElementById('detail-panel').classList.add('hidden'); });
+        
+        // 뒤로가기(닫기) 시 푸터 다시 보이게 함
+        document.getElementById('close-btn').addEventListener('click', () => { 
+            document.getElementById('detail-panel').classList.add('hidden'); 
+            document.getElementById('footer-panel').classList.remove('hidden');
+            setTimeout(() => map.invalidateSize(), 100);
+        });
         
         document.getElementById('reset-btn').addEventListener('click', () => {
             document.getElementById('search-input').value = ''; 
             document.getElementById('climate-filter').value = 'all'; 
             document.getElementById('exam-filter').value = 'all';
             document.getElementById('sort-select').value = 'default';
-            renderList(); document.getElementById('detail-panel').classList.add('hidden'); map.flyTo([10, 20], 2, { duration: 1.5 });
+            renderList(); document.getElementById('detail-panel').classList.add('hidden'); document.getElementById('footer-panel').classList.remove('hidden'); map.flyTo([10, 20], 2, { duration: 1.5 });
         });
         document.getElementById('mobile-settings-btn').addEventListener('click', () => { document.getElementById('climate-engine').classList.toggle('show'); });
 
@@ -579,6 +595,7 @@
         });
 
         map.on('move zoom', syncPanelsAndSVG);
+        window.addEventListener('resize', () => { setTimeout(() => { map.invalidateSize(); syncPanelsAndSVG(); }, 200); });
 
         document.getElementById('panel-toggle').addEventListener('change', (e) => {
             isEngineActive = e.target.checked;
