@@ -41,6 +41,9 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         select { appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; }
 
+        /* 구글 지도 다크모드 반전 필터 추가 */
+        .dark-map-layer { filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%); }
+
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .sidebar { width: 100%; height: 40%; order: 2; border-right: none; border-top: 1px solid #1e293b; position: relative; }
@@ -112,6 +115,7 @@
                 <div id="k-symbol" class="inline-block px-1.5 py-0.5 rounded text-[8px] font-black mb-1"></div>
                 
                 <div class="text-[9px] text-slate-400 mb-2 flex flex-wrap gap-2 bg-slate-800/50 p-1.5 rounded border border-slate-700">
+                    <span>📍 위치: <span id="selected-coords" class="text-slate-200 font-bold"></span></span>
                     <span>🏔️ 고도: <span id="selected-elev" class="text-slate-200 font-bold"></span></span>
                     <span>📚 출처: <span id="selected-source" class="text-slate-200 font-bold truncate max-w-[80px] inline-block align-bottom"></span></span>
                     <span id="history-container" class="hidden text-yellow-500 font-bold ml-1">📝 기출: <span id="selected-history"></span></span>
@@ -186,7 +190,7 @@
     <script src="final_climate_data.js"></script>
 
     <script>
-        // --- [기후별 대표 경관 이미지 데이터베이스 (외부 링크 허용 이미지)] ---
+        // --- [기후별 대표 경관 이미지 데이터베이스] ---
         const climateImages = {
             "Af": "https://images.unsplash.com/photo-1546272989-40c92939c6c2?auto=format&fit=crop&w=800&q=80", 
             "Am": "https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?auto=format&fit=crop&w=800&q=80", 
@@ -219,7 +223,7 @@
             "Dw": { name: "냉대 겨울 건조 기후", features: ["시베리아 고기압의 영향으로 겨울 기온이 매우 낮고 극도로 한랭 건조함", "강수가 주로 여름에 집중되며, 유라시아 대륙 동안(동북아, 시베리아 동부)에 분포", "세계에서 기온 연교차가 가장 큰 지역들을 포함하며 타이가 및 전통 가옥 발달"], vegSoil: ["🌲 타이가(침엽수림)", "🌱 포드졸 (냉대 침엽수림 지대에 분포하는 회백색 산성 토양)"], keywords: ["겨울 극건조", "연교차 최대 지역", "시베리아 고기압", "타이가/통나무집"] },
             "ET": { name: "툰드라 기후", features: ["최난월 평균 0~10도로 기온 연교차가 크며, 짧은 여름 동안 지표면이 융해됨", "활동층이 녹아 건축물이 붕괴되는 것을 막기 위한 고상 가옥 발달", "순록 유목, 이동식 천막집 발달 및 고래/바다표범 수렵, 어업 활동", "오로라, 빙하, 백야 현상 등을 체험하는 관광 산업 및 자원 확보 활발"], vegSoil: ["🌿 지의류(이끼), 선태류", "🌱 툰드라 토양 (영구 동토층 및 활동층, 구조토 발달)"], keywords: ["영구 동토층/활동층", "순록 유목", "고상 가옥", "오로라/백야"] },
             "EF": { name: "빙설 기후", features: ["최난월 평균 기온 0도 미만으로, 지표면이 연중 두꺼운 눈과 얼음(빙상)으로 덮임", "식생이 자라기 불리하여 인간 거주에 부적합하며 남극 및 그린란드에 분포", "현재는 과학 연구 목적의 기지 건설 및 지하자원 확보, 군사적 목적의 관심 증대"], vegSoil: ["❌ 식생 없음", "❄️ 눈과 얼음(두꺼운 빙하/빙상)"], keywords: ["최난월 0도 미만", "연중 빙설", "식생 불모지", "과학/군사 기지"] },
-            "H": { name: "고산 기후", features: ["해발 고도가 높은 열대 지역에서 일년 내내 봄과 같은 온화한 기후(상춘 기후) 발생", "인간 거주에 유리해 고산 도시가 발달하며, 기온의 일교차는 크고 연교차는 작음", "햇빛이 강한 낮에는 챙이 넓은 모자를, 밤의 추위에는 판초(Poncho)를 착용함", "안데스 산지 등에서는 서늘함을 이용해 밀, 보리, 감자, 옥수수 재배 및 라마/알파카 유목"], vegSoil: ["🏔️ 고도에 따른 수직적 식생대 분포"], keywords: ["상춘 기후", "고산 도시", "챙 넓은 모자/판초", "일교차 큼/연교차 작음"] }
+            "H": { name: "고산 기후", features: ["해발 고도가 높은 열대 지역에서 일년 내내 봄과 같은 온화한 기후(상춘 기후) 발생", "인간 거주에 유리해 고산 도시가 발달하며, 기온의 일교차는 크고 연교차는 작음", "햇빛이 강한 낮에는 챙이 넓은 모자를, 밤의 추위에는 판초(Poncho) 착용함", "안데스 산지 등에서는 서늘함을 이용해 밀, 보리, 감자, 옥수수 재배 및 라마/알파카 유목"], vegSoil: ["🏔️ 고도에 따른 수직적 식생대 분포"], keywords: ["상춘 기후", "고산 도시", "챙 넓은 모자/판초", "일교차 큼/연교차 작음"] }
         };
         climateTraits["AH"] = climateTraits["H"];
 
@@ -231,8 +235,13 @@
         }
 
         const map = L.map('map', { zoomControl: false, minZoom: 2, maxBounds: [[-90, -180], [90, 180]] }).setView([10, 20], 2);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(map); 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png', { zIndex: 1000 }).addTo(map); 
+        
+        // 구글 지도 (다크 모드 적용) 교체 부분
+        L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', {
+            className: 'dark-map-layer',
+            maxZoom: 18,
+            attribution: '&copy; Google Maps'
+        }).addTo(map);
 
         let myChart = null; let currentMarkers = []; 
 
@@ -285,6 +294,14 @@
                     document.getElementById('k-symbol').innerText = d.symbol;
                     document.getElementById('k-symbol').style.color = col;
                     
+                    // --- [위경도 텍스트 변환 및 출력] ---
+                    const lat = d.coords[0];
+                    const lng = d.coords[1];
+                    const latStr = Math.abs(lat).toFixed(1) + '°' + (lat >= 0 ? 'N' : 'S');
+                    const lngStr = Math.abs(lng).toFixed(1) + '°' + (lng >= 0 ? 'E' : 'W');
+                    document.getElementById('selected-coords').innerText = `${latStr}, ${lngStr}`;
+                    // ------------------------------------
+
                     const cityImgTag = document.getElementById('city-image');
                     const symbol = d.symbol;
                     const finalImgUrl = climateImages[symbol] || 
@@ -457,7 +474,7 @@
 
         const lonsITCZ = [-180, -120, -60, -20, 20, 80, 120, 180];
         const janITCZ = [ 3, 0, -15, 0, -15, -10, -15, 0 ]; 
-        const julITCZ = [ 8, 10, 5, 5, 15, 25, 15, 10 ];    
+        const julITCZ = [ 8, 10, 5, 5, 15, 25, 15, 10 ];   
 
         function getItczLat(targetLon) {
             let lon = targetLon;
@@ -574,10 +591,6 @@
             setTimeout(() => map.invalidateSize(), 300);
         });
         
-        // --- [앱 시작 및 초기화 로직] ---
-        initPanels(); 
-        renderList(); 
-
         function syncInitialUI() {
             const toggleInput = document.getElementById('panel-toggle');
             toggleInput.checked = isEngineActive; 
@@ -597,6 +610,8 @@
             map.invalidateSize();
         }
 
+        initPanels(); 
+        renderList(); 
         syncInitialUI();
         setTimeout(syncPanelsAndSVG, 100);
     </script>
